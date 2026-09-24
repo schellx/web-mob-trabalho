@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+<<<<<<< HEAD
 import { createObserveModule } from '@nestjs/observe';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -15,6 +16,13 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       serviceId: 'backend',
     }),
   ],
+=======
+import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
+
+@Module({
+  imports: [],
+>>>>>>> 578405c (feat: inicia backend com NestJS, Prisma e PostgreSQL com Docker)
   controllers: [AppController],
   providers: [AppService],
 })
