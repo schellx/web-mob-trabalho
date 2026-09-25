@@ -9,11 +9,11 @@
 | Campo | Valor |
 |---|---|
 | **Nome do projeto** | _(ex: Central de Suporte Interno)_ |
-| **Grupo** | _(nome ou número do grupo)_ |
-| **Integrantes** | _(nomes — detalhamento em `docs/equipe.md`)_ |
+| **Grupo** | _Maria Eduarda Schell / João Vitor Dalla Lana_ |
+| **Integrantes** | _Maria Eduarda Schell / João Vitor Dalla Lana_ |
 | **Disciplina** | Programação Web e Mobile |
-| **Data de criação** | |
-| **Última atualização** | |
+| **Data de criação*03/09/2026* | |
+| **Última atualização*24/09/2026* | |
 | **Versão** | 1.0 |
 
 ---
@@ -22,149 +22,146 @@
 
 ### 1.1 Propósito do documento
 
-> Descreva em 2–3 frases o que este documento cobre e para quem ele é destinado.
-
-_(Exemplo: Este documento descreve a visão do produto X, seu contexto de negócio, os principais usuários e o escopo de alto nível. Destina-se ao professor orientador e serve como base para o PRD.)_
+Este documento descreve a visão do sistema de credenciamento e check-in de eventos, seu contexto, os principais usuários, o escopo e as capacidades do produto. O documento serve como base para o desenvolvimento do sistema e para a definição dos requisitos do projeto.
 
 ### 1.2 Escopo do produto
 
-> Defina o que o sistema faz e o que ele **não** faz. Seja objetivo.
-
 **O sistema irá:**
-- 
-- 
-- 
+- Permitir o cadastro e gerenciamento de eventos, lotes e vagas.
+- Permitir inscrições com código único, lista de espera e consulta de ingressos.
+- Permitir o registro de check-in pelo celular e acompanhar a contagem de participantes.
 
 **O sistema não irá (fora do escopo):**
-- 
-- 
+- Realizar pagamentos ou vendas de ingressos.
+- Gerenciar a organização completa do evento além de inscrições, credenciamento e acompanhamento de presença.
 
 ### 1.3 Definições e siglas
 
-> Liste termos do domínio que precisam de definição para quem lê o documento.
-
 | Termo | Definição |
 |---|---|
-| | |
-| | |
-
+| Evento | Atividade organizada que possui participantes, vagas e períodos de inscrição |
+| Lote | Período ou categoria de inscrição de um evento, com quantidade determinada de vagas |
+| Check-in | Registro da entrada de um participante no evento |
+| Lista de espera | Lista de participantes que aguardam disponibilidade de vaga no evento |
+| Código único | Código utilizado para identificar a inscrição de um participante |
 ---
 
 ## 2. Posicionamento
 
 ### 2.1 Declaração do problema
 
-> Preencha o quadro abaixo descrevendo o problema que motiva o sistema.
-
 | Campo | Descrição |
 |---|---|
-| **O problema de** | _(qual problema existe)_ |
-| **Afeta** | _(quem sofre com esse problema)_ |
-| **Cujo impacto é** | _(quais consequências esse problema gera)_ |
-| **Uma solução adequada seria** | _(como o sistema proposto resolve isso)_ |
+| **O problema de** | _Controlar inscrições, vagas e entrada de participantes em eventos de forma organizada_ |
+| **Afeta** | _Organizadores, recepcionistas e participantes dos eventos_ |
+| **Cujo impacto é** | _Dificuldade para controlar vagas, localizar inscrições, registrar entradas e acompanhar a quantidade de participantes presentes_ |
+| **Uma solução adequada seria** | _Um sistema que centralize o gerenciamento de eventos e inscrições e permita realizar o check-in dos participantes pelo celular_ |
 
 ### 2.2 Declaração de posição do produto
 
-> Complete as lacunas abaixo.
 
-- **Para** _(público-alvo)_
-- **Que** _(necessidade ou oportunidade)_
-- **O** _(nome do produto)_
-- **É** _(categoria do produto)_
-- **Que** _(benefício principal)_
-- **Diferente de** _(alternativa existente ou processo manual atual)_
-- **Nosso produto** _(principal diferencial)_
+- **Para** _organizadores, recepcionistas e participantes de eventos_
+- **Que** _precisam gerenciar inscrições e controlar a entrada dos participantes_
+- **O** _Credenciamento e Check-in de Eventos_
+- **É** _um sistema de gerenciamento de eventos e credenciamento_
+- **Que** _facilita o controle de inscrições, vagas e presença dos participantes_
+- **Diferente de** _processos manuais de controle de inscrições e entrada_
+- **Nosso produto** _integra o gerenciamento dos eventos com o credenciamento e check-in por código ou nome, utilizando web e aplicativo mobile de acordo com o contexto de cada usuário_
 
 ---
 
 ## 3. Partes interessadas
 
-> Liste todos os envolvidos — usuários diretos, gestores, sistemas externos. Pelo menos 2.
 
 | Parte interessada | Papel | Interesse no sistema |
 |---|---|---|
-| | | |
-| | | |
-| | | |
+| Organizador do evento | Gerencia eventos, lotes, inscrições e acompanha os resultados | Ter controle sobre inscrições, vagas e comparecimento |
+| Recepcionista | Realiza o credenciamento e check-in dos participantes | Registrar entradas de forma rápida e consultar inscrições |
+| Participante | Realiza sua inscrição e utiliza seu ingresso no evento | Ter acesso à sua inscrição e realizar o credenciamento de forma simples |
+
 
 ---
 
 ## 4. Descrição dos usuários
 
-> Para cada perfil de usuário, preencha uma subseção. Mínimo de 2 perfis.
->
-> A coluna **Contexto de uso** é decisiva neste projeto: é dela que sai a justificativa para existirem dois clientes. Descreva onde a pessoa está e o que tem em mãos quando usa o sistema.
-
-### 4.1 Perfil: _(nome do perfil, ex: Atendente)_
+### 4.1 Perfil: _Organizador_
 
 | Campo | Descrição |
 |---|---|
-| **Descrição** | |
-| **Responsabilidades** | |
-| **Contexto de uso** | _(sentado à mesa? em movimento? em campo, com as mãos ocupadas?)_ |
-| **Nível técnico** | _(básico / intermediário / avançado)_ |
-| **Frequência de uso** | _(diário / semanal / eventual)_ |
-| **Principal necessidade** | |
+| **Descrição** | Pessoa responsável pelo planejamento e gerenciamento do evento |
+| **Responsabilidades** | Cadastrar eventos, gerenciar lotes e vagas, acompanhar inscrições, lista de espera e relatórios de comparecimento |
+| **Contexto de uso** | Utiliza principalmente um computador em um ambiente de trabalho, com uma tela maior para visualizar e gerenciar informações do evento |
+| **Nível técnico** | Intermediário |
+| **Frequência de uso** | Semanal e diária durante períodos de inscrição e realização dos eventos |
+| **Principal necessidade** | Gerenciar o evento e acompanhar inscrições e comparecimento dos participantes |
 
-### 4.2 Perfil: _(nome do perfil)_
+
+### 4.2 Perfil: Recepcionista
 
 | Campo | Descrição |
 |---|---|
-| **Descrição** | |
-| **Responsabilidades** | |
-| **Contexto de uso** | |
-| **Nível técnico** | |
-| **Frequência de uso** | |
-| **Principal necessidade** | |
+| **Descrição** | Pessoa responsável pelo credenciamento e controle de entrada dos participantes no evento |
+| **Responsabilidades** | Buscar inscrições, identificar participantes e registrar o check-in |
+| **Contexto de uso** | Utiliza um celular na entrada do evento, geralmente em movimento e atendendo os participantes em sequência |
+| **Nível técnico** | Básico |
+| **Frequência de uso** | Principalmente durante a realização dos eventos |
+| **Principal necessidade** | Realizar o check-in dos participantes de forma rápida e prática |
 
+### 4.3 Perfil: Participante
+
+| Campo | Descrição |
+|---|---|
+| **Descrição** | Pessoa inscrita em um evento que possui um ingresso ou inscrição válida |
+| **Responsabilidades** | Realizar sua inscrição e apresentar seu código ou ingresso para o credenciamento |
+| **Contexto de uso** | Utiliza principalmente o celular para consultar seu ingresso e apresentar seu código no momento da entrada do evento |
+| **Nível técnico** | Básico |
+| **Frequência de uso** | Eventual, de acordo com os eventos em que estiver inscrito |
+| **Principal necessidade** | Acessar facilmente seu ingresso e realizar o credenciamento de forma rápida |
 ---
 
 ## 5. Visão geral do produto
 
 ### 5.1 Perspectiva do produto
 
-> Descreva como o sistema se encaixa no contexto mais amplo. É um sistema independente? Substitui algum processo manual? Integra com algum outro sistema?
+o sistema será uma solução independente para gerenciamento de eventos, inscrições e credenciamento. Ele centralizará informações que poderiam ser controladas manualmente, permitindo ao organizador gerenciar eventos e inscrições pelo cliente web e a recepção realizar o check-in pelo aplicativo mobile.
 
 ### 5.2 Por que dois clientes
 
-> **Esta seção é obrigatória.** Argumente por que o domínio escolhido justifica um cliente web **e** um aplicativo mobile. Um projeto em que os dois clientes fariam exatamente a mesma coisa não atende ao objetivo do trabalho.
 
 **O que acontece na tela grande, e por quê:**
+O cliente web será utilizado principalmente pelo organizador para cadastrar e gerenciar eventos, lotes e inscrições, acompanhar a lista de espera e consultar relatórios de comparecimento. Essas atividades envolvem maior quantidade de informações e são mais adequadas a uma tela grande.
 
 **O que acontece no celular, e por quê:**
+O aplicativo mobile será utilizado principalmente pela recepção e pelos participantes. A recepção poderá buscar participantes por nome ou código e registrar o check-in diretamente na entrada do evento, enquanto o participante poderá consultar seu ingresso. O celular é mais adequado para esse contexto por permitir mobilidade e acesso rápido durante o atendimento.
+
 
 **O que faz sentido existir nos dois:**
-
-> Este raciocínio será detalhado no PRD como o "recorte web/mobile". Aqui basta o argumento de produto — o detalhamento funcional vem depois.
+Informações relacionadas as inscrições, participantes, eventos e situação do check-in podem ser compartilhadas entre os clientes,garantindo que os dados utilizados pelo organizador, recepção e participante sejam consistentes.
 
 ### 5.3 Capacidades principais
 
-> Liste as grandes funcionalidades do sistema em alto nível, sem detalhar requisitos. Cada item aqui vira um épico no PRD. Indique em qual cliente a capacidade se manifesta principalmente.
 
 | # | Capacidade | Descrição resumida | Cliente principal |
 |---|---|---|---|
-| C01 | | | _(web / mobile / ambos)_ |
-| C02 | | | |
-| C03 | | | |
-| C04 | | | |
+| C01 | Gerenciamento de eventos e lotes | Criar e gerenciar eventos, lotes e vagas. | web |
+| C02 | Inscrições e lista de espera | Gerenciar inscrições, códigos únicos e participantes em lista de espera. | web |
+| C03 | Credenciamento e check-in | Buscar participantes e registrar sua entrada no evento. | mobile |
+| C04 | Acompanhamento de comparecimento | Consultar a quantidade de participantes presentes e relatórios de comparecimento. | web / mobile |
 
 ### 5.4 Suposições e dependências
 
-> O que precisa ser verdade para o sistema funcionar? O que está fora do controle do projeto?
 
 **Suposições:**
-- 
-- 
+- Os organizadores terão acesso à internet para gerenciar os eventos.
+- Os participantes possuirão uma inscrição válida para realizar o check-in.
 
 **Dependências:**
-- 
-- 
+- Banco de dados PostgreSQL para armazenamento das informações.
+- Conexão com a API do backend para comunicação entre os clientes e o sistema.
 
 ---
 
 ## 6. Restrições
-
-> Liste restrições técnicas, de prazo e de escopo que limitam as escolhas do projeto. As linhas de tecnologia já estão preenchidas — complete as demais e acrescente as que forem próprias do seu domínio.
 
 | Tipo | Restrição |
 |---|---|
@@ -176,25 +173,22 @@ _(Exemplo: Este documento descreve a visão do produto X, seu contexto de negóc
 | Controle de versão | Repositório único do grupo no GitHub, criado a partir do repositório-modelo da disciplina |
 | Prazo | Etapas 0 a 5 conforme o calendário da turma, mais apresentação |
 | Documentação | Markdown, versionada no mesmo repositório |
-| _(adicione outras)_ | |
+| Escopo | O sistema será limitado às funcionalidades definidas para o MVP do projeto |
+| Banco de dados | O sistema deverá utilizar PostgreSQL 18 acessível pelo backend | |
 
 ---
 
 ## 7. Qualidade
 
-> Cite pelo menos 3 atributos de qualidade relevantes para o seu sistema e justifique a escolha. Ao menos um deles deve tratar de algo específico do contexto móvel (conectividade instável, tempo de resposta percebido, consumo de dados, uso com uma mão só).
-
 | Atributo | Relevância para este sistema |
 |---|---|
-| _(ex: Usabilidade)_ | |
-| | |
-| | |
-
+| **Usabilidade** | O sistema deve permitir que organizadores, recepcionistas e participantes realizem suas tarefas de forma simples e objetiva. |
+| **Desempenho** | O check-in deve responder rapidamente, pois a recepção poderá atender vários participantes em sequência. |
+| **Conectividade móvel** | O aplicativo deve lidar adequadamente com possíveis variações de conexão durante o uso na entrada do evento, evitando operações duplicadas ou inconsistentes |
 ---
 
 ## 8. Histórico de revisões
 
 | Versão | Data | Autor | Descrição da alteração |
 |---|---|---|---|
-| 1.0 | | | Versão inicial |
-| | | | |
+| 1.0 | 24/09/2026 | [Maria Eduarda Schell / João Vitor Dalla Lana] | Versão inicial |

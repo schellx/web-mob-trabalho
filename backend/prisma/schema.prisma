@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -10,4 +5,84 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum TipoUsuario {
+  ORGANIZADOR
+  RECEPCIONISTA
+  PARTICIPANTE
+}
+
+enum StatusInscricao {
+  ATIVA
+  CANCELADA
+  LISTA_ESPERA
+}
+
+model Usuario {
+  id         Int         @id @default(autoincrement())
+  nome       String
+  email      String      @unique
+  tipo       TipoUsuario
+  criadoEm   DateTime    @default(now())
+  inscricoes Inscricao[]
+  checkIns   CheckIn[]
+  eventos    Evento[]
+}
+
+model Evento {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  descricao String?
+  local     String
+  data      DateTime
+  criadoEm  DateTime @default(now())
+
+  organizadorId Int
+  organizador   Usuario @relation(fields: [organizadorId], references: [id])
+
+  lotes      Lote[]
+  inscricoes Inscricao[]
+}
+
+model Lote {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  quantidade Int
+  inicio     DateTime
+  fim        DateTime
+
+  eventoId Int
+  evento   Evento @relation(fields: [eventoId], references: [id])
+
+  inscricoes Inscricao[]
+}
+
+model Inscricao {
+  id       Int             @id @default(autoincrement())
+  codigo   String          @unique
+  status   StatusInscricao @default(ATIVA)
+  criadoEm DateTime        @default(now())
+
+  participanteId Int
+  participante   Usuario @relation(fields: [participanteId], references: [id])
+
+  eventoId Int
+  evento   Evento @relation(fields: [eventoId], references: [id])
+
+  loteId Int
+  lote   Lote @relation(fields: [loteId], references: [id])
+
+  checkIn CheckIn?
+}
+
+model CheckIn {
+  id          Int      @id @default(autoincrement())
+  realizadoEm DateTime @default(now())
+
+  inscricaoId Int       @unique
+  inscricao   Inscricao @relation(fields: [inscricaoId], references: [id])
+
+  recepcionistaId Int
+  recepcionista   Usuario @relation(fields: [recepcionistaId], references: [id])
 }
