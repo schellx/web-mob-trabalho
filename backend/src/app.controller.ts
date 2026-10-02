@@ -9,4 +9,14 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  @Get('usuarios')
+  findAll(){
+    return [
+      { id: 1, nome: 'João'},
+      { id: 2, nome: 'Kas'}
+    ];
+  }
+
+
 }
