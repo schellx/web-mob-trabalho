@@ -1,3 +1,7 @@
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 
 type Evento = {
@@ -7,6 +11,8 @@ type Evento = {
   local: string;
   data: string;
 };
+
+const API_URL = 'http://localhost:3000';
 
 function formatarData(data: string) {
   const dataLocal = new Date(`${data.slice(0, 10)}T12:00:00`);
@@ -18,40 +24,166 @@ function formatarData(data: string) {
   }).format(dataLocal);
 }
 
-export default async function Home() {
-  const response = await fetch('http://localhost:3000/eventos');
+export default function Home() {
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
+  const [mensagem, setMensagem] = useState('');
 
-  const eventos: Evento[] = await response.json();
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarEventos() {
+      try {
+        const response = await fetch(`${API_URL}/eventos`);
+
+        if (!response.ok) {
+          throw new Error('Não foi possível carregar os eventos.');
+        }
+
+        const dados: Evento[] = await response.json();
+
+        if (ativo) {
+          setEventos(dados);
+        }
+      } catch (erro) {
+        if (ativo) {
+          setErro(
+            erro instanceof Error
+              ? erro.message
+              : 'Erro ao carregar eventos.'
+          );
+        }
+      } finally {
+        if (ativo) {
+          setCarregando(false);
+        }
+      }
+    }
+
+    void carregarEventos();
+
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
+  async function excluirEvento(id: number, nome: string) {
+    const confirmou = window.confirm(
+      `Tem certeza de que deseja excluir o evento "${nome}"?`
+    );
+
+    if (!confirmou) {
+      return;
+    }
+
+    setErro('');
+    setMensagem('');
+
+    try {
+      const response = await fetch(`${API_URL}/eventos/${id}`, {
+        method: 'DELETE',
+      });
+
+      const resultado = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          typeof resultado?.message === 'string'
+            ? resultado.message
+            : 'Não foi possível excluir o evento.'
+        );
+      }
+
+      setEventos((eventosAtuais) =>
+        eventosAtuais.filter((evento) => evento.id !== id)
+      );
+
+      setMensagem(`Evento "${nome}" excluído com sucesso.`);
+    } catch (erro) {
+      setErro(
+        erro instanceof Error
+          ? erro.message
+          : 'Erro ao excluir o evento.'
+      );
+    }
+  }
 
   return (
     <main className={styles.container}>
       <header className={styles.header}>
+        <div>
+          <p className={styles.subtitulo}>GERENCIAMENTO</p>
 
-        <h1 className={styles.titulo}>Próximos eventos</h1>
+          <h1 className={styles.titulo}>Próximos eventos</h1>
 
-        <p>
-          Descubra eventos, workshops e experiências para participar.
-        </p>
+          <p className={styles.descricao}>
+            Gerencie seus eventos em um só lugar.
+          </p>
+        </div>
+
+        <Link href="/eventos/novo" className={styles.botaoNovo}>
+          + Novo evento
+        </Link>
       </header>
 
-      <section className={styles.lista}>
-        {eventos.map((evento) => (
-          <article className={styles.card} key={evento.id}>
-            <span>EVENTO</span>
-            <span><br></br>#{evento.id}</span>
+      {mensagem && (
+        <p className={styles.mensagem} role="status">
+          {mensagem}
+        </p>
+      )}
 
-            <h2> <b>{evento.nome}</b></h2>
+      {erro && (
+        <p className={styles.erro} role="alert">
+          {erro}
+        </p>
+      )}
 
-            <p className={styles.descricao}>
-              {evento.descricao || 'Sem descrição disponível.'}
-            </p>
+      {carregando ? (
+        <p className={styles.estado}>Carregando eventos...</p>
+      ) : eventos.length === 0 ? (
+        <div className={styles.vazio}>
+          <h2>Nenhum evento cadastrado</h2>
+          <p>Comece criando seu primeiro evento.</p>
 
-            <p>📍 {evento.local}</p>
+          <Link href="/eventos/novo" className={styles.botaoNovo}>
+            Cadastrar evento
+          </Link>
+        </div>
+      ) : (
+        <section className={styles.lista}>
+          {eventos.map((evento) => (
+            <article className={styles.card} key={evento.id}>
+              <span className={styles.etiqueta}>EVENTO</span>
 
-            <p>📅 {formatarData(evento.data)}</p>
-          </article>
-        ))}
-      </section>
+              <h2>{evento.nome}</h2>
+
+              <p>{evento.descricao || 'Sem descrição disponível.'}</p>
+
+              <p>📍 {evento.local}</p>
+
+              <p>📅 {formatarData(evento.data)}</p>
+
+              <div className={styles.acoes}>
+                <Link
+                  href={`/eventos/${evento.id}/editar`}
+                  className={styles.botaoEditar}
+                >
+                  Editar
+                </Link>
+
+                <button
+                  type="button"
+                  className={styles.botaoExcluir}
+                  onClick={() => excluirEvento(evento.id, evento.nome)}
+                >
+                  Excluir
+                </button>
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
     </main>
   );
 }

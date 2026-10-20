@@ -106,3 +106,21 @@
     font-size: 27px;
   }
 }
+
+.linkVoltar {
+  display: inline-block;
+  margin-bottom: 24px;
+  color: #444;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.linkVoltar:hover {
+  text-decoration: underline;
+}
+
+.erro {
+  color: #b42318;
+  font-size: 14px;
+  line-height: 1.5;
+}

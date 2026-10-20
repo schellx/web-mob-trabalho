@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateEventoDto } from './dto/create-evento.dto.js';
 import { UpdateEventoDto } from './dto/update-evento.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -23,18 +23,61 @@ export class EventosService {
   }
 
   findAll() {
-    return this.prisma.evento.findMany();
+    return this.prisma.evento.findMany({
+      orderBy: {
+        data: 'asc',
+      },  
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} evento`;
+  async findOne(id: number) {
+    const evento = await this.prisma.evento.findUnique({
+      where:{id},
+    });
+
+    if (!evento){
+       throw new NotFoundException('Evento não encontrado.');
+    }
+
+    return evento;
   }
 
-  update(id: number, updateEventoDto: UpdateEventoDto) {
-    return `This action updates a #${id} evento`;
+  async update(id: number, updateEventoDto: UpdateEventoDto) {
+    await this.findOne(id);
+
+    const { data, ...outrosCampos } = updateEventoDto;
+
+    return this.prisma.evento.update({
+      where: { id },
+      data: {
+        ...outrosCampos,
+        ...(data !== undefined ? { data: new Date(data) } : {}),
+      },
+    });
   }
 
   remove(id: number) {
-    return `This action removes a #${id} evento`;
+    const evento = this.prisma.evento.findUnique({
+      where: {id},
+
+      include: {
+        lotes: true,
+        inscricoes: true,
+      },
+      
+    });
+
+    if (!evento) {
+      throw new NotFoundException('Evento não encontrado.');
+    }
+
+    if (evento.lotes.length > 0 || evento.inscricoes.length > 0){
+      throw new ConflictException('Não é possível excluir evento com lotes ou inscrições!')
+    }
+
+    return this.prisma.evento.delete({
+      where: {id},
+    });
+
   }
 }

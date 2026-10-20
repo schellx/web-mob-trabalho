@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import styles from './page.module.css';
+import Link from 'next/link';
 
 export default function NovoEvento() {
   const [nome, setNome] = useState('');
@@ -62,7 +63,11 @@ export default function NovoEvento() {
 
   return (
     <main className={styles.container}>
+
       <section className={styles.formulario}>
+      <Link href="/" className={styles.linkVoltar}>
+        Voltar para eventos
+      </Link>
         <p className={styles.subtitulo}>GERENCIAMENTO</p>
 
         <h1>Novo evento</h1>

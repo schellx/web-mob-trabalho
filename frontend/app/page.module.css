@@ -1,46 +1,82 @@
 .container {
   min-height: 100vh;
-  background-color: #f5f5f5;
   padding: 50px;
+  background-color: #f5f5f5;
   color: #222;
 }
 
 .header {
   max-width: 1000px;
-  margin: 0 auto 40px;
+  margin: 0 auto 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.subtitulo {
+  margin-bottom: 10px;
+  color: #666;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
 }
 
 .titulo {
-  font-size: 40px;
-  margin: 10px 0;
+  margin: 0 0 10px;
+  font-size: 36px;
 }
 
 .descricao {
+  margin: 0;
   color: #666;
+  line-height: 1.5;
+}
+
+.botaoNovo {
+  display: inline-block;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background-color: #222;
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.botaoNovo:hover {
+  background-color: #444;
 }
 
 .lista {
   max-width: 1000px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 25px;
 }
 
 .card {
-  background-color: white;
   padding: 25px;
+  background-color: white;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  overflow-wrap: anywhere;
 }
 
-.card span {
+.etiqueta {
+  display: inline-block;
+  color: #666;
   font-size: 12px;
-  color: #555;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
 .card h2 {
   margin: 15px 0 10px;
+  font-size: 22px;
 }
 
 .card p {
@@ -48,16 +84,88 @@
   line-height: 1.5;
 }
 
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.botaoEditar,
+.botaoExcluir {
+  padding: 9px 14px;
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.botaoEditar {
+  background-color: white;
+  color: #222;
+}
+
+.botaoEditar:hover {
+  background-color: #f2f2f2;
+}
+
+.botaoExcluir {
+  background-color: #fff;
+  color: #b42318;
+  border-color: #e6b8b5;
+}
+
+.botaoExcluir:hover {
+  background-color: #fff1f0;
+}
+
+.mensagem,
+.erro,
+.estado {
+  max-width: 1000px;
+  margin: 0 auto 20px;
+  line-height: 1.5;
+}
+
+.mensagem {
+  color: #267344;
+}
+
+.erro {
+  color: #b42318;
+}
+
+.vazio {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 35px;
+  background-color: white;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.vazio p {
+  margin-bottom: 25px;
+  color: #666;
+}
+
 @media (max-width: 700px) {
+  .container {
+    padding: 25px 16px;
+  }
+
+  .titulo {
+    font-size: 29px;
+  }
+
   .lista {
     grid-template-columns: 1fr;
   }
 
-  .container {
-    padding: 25px;
-  }
-
-  .titulo {
-    font-size: 30px;
+  .header {
+    align-items: flex-start;
   }
 }
+
