@@ -23,6 +23,7 @@ model Usuario {
   id         Int         @id @default(autoincrement())
   nome       String
   email      String      @unique
+  senhaHash  String
   tipo       TipoUsuario
   criadoEm   DateTime    @default(now())
   inscricoes Inscricao[]
