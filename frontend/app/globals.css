@@ -107,3 +107,29 @@ body {
   color: #666;
   font-size: 14px;
 }
+
+.formulario-sair {
+  margin-left: auto;
+  padding-right: 30px;
+}
+
+.botao-sair {
+  padding: 10px 16px;
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  background: #fff;
+  color: #222;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.botao-sair:hover {
+  background: #f2f2f2;
+}
+
+@media (max-width: 600px) {
+  .formulario-sair {
+    padding-right: 12px;
+  }
+}

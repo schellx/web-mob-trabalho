@@ -10,74 +10,94 @@ export class EventosService {
 
   }
 
-  async create(createEventoDto: CreateEventoDto) {
-    return this.prisma.evento.create({
-      data: {
-        nome: createEventoDto.nome,
-        descricao: createEventoDto.descricao,
-        local: createEventoDto.local,
-        data: new Date(createEventoDto.data),
-        organizadorId: createEventoDto.organizadorId,
-      },
-    });
+async create(
+  createEventoDto: CreateEventoDto,
+  organizadorId: number,
+) {
+  return this.prisma.evento.create({
+    data: {
+      nome: createEventoDto.nome,
+      descricao: createEventoDto.descricao,
+      local: createEventoDto.local,
+      data: new Date(createEventoDto.data),
+      organizadorId,
+    },
+  });
+}
+
+  findAll(organizadorId?: number) {
+  return this.prisma.evento.findMany({
+    where:
+      organizadorId !== undefined
+        ? { organizadorId }
+        : undefined,
+    orderBy: {
+      data: 'asc',
+    },
+  });
+}
+
+ async findOne(id: number, organizadorId?: number) {
+  const evento = await this.prisma.evento.findUnique({
+    where: { id },
+  });
+
+  if (
+    !evento ||
+    (organizadorId !== undefined &&
+      evento.organizadorId !== organizadorId)
+  ) {
+    throw new NotFoundException('Evento não encontrado.');
   }
 
-  findAll() {
-    return this.prisma.evento.findMany({
-      orderBy: {
-        data: 'asc',
-      },  
-    });
+  return evento;
+}
+
+ async update(
+  id: number,
+  updateEventoDto: UpdateEventoDto,
+  organizadorId: number,
+) {
+  const evento = await this.prisma.evento.findUnique({
+    where: { id },
+  });
+
+  if (!evento || evento.organizadorId !== organizadorId) {
+    throw new NotFoundException('Evento não encontrado.');
   }
 
-  async findOne(id: number) {
-    const evento = await this.prisma.evento.findUnique({
-      where:{id},
-    });
+  const { data, ...outrosCampos } = updateEventoDto;
 
-    if (!evento){
-       throw new NotFoundException('Evento não encontrado.');
-    }
+  return this.prisma.evento.update({
+    where: { id },
+    data: {
+      ...outrosCampos,
+      ...(data !== undefined ? { data: new Date(data) } : {}),
+    },
+  });
+}
 
-    return evento;
+async remove(id: number, organizadorId: number) {
+  const evento = await this.prisma.evento.findUnique({
+    where: { id },
+    include: {
+      lotes: true,
+      inscricoes: true,
+    },
+  });
+
+  if (!evento || evento.organizadorId !== organizadorId) {
+    throw new NotFoundException('Evento não encontrado.');
   }
 
-  async update(id: number, updateEventoDto: UpdateEventoDto) {
-    await this.findOne(id);
-
-    const { data, ...outrosCampos } = updateEventoDto;
-
-    return this.prisma.evento.update({
-      where: { id },
-      data: {
-        ...outrosCampos,
-        ...(data !== undefined ? { data: new Date(data) } : {}),
-      },
-    });
+  if (evento.lotes.length > 0 || evento.inscricoes.length > 0) {
+    throw new ConflictException(
+      'Não é possível excluir um evento com lotes ou inscrições.',
+    );
   }
 
-  remove(id: number) {
-    const evento = this.prisma.evento.findUnique({
-      where: {id},
-
-      include: {
-        lotes: true,
-        inscricoes: true,
-      },
-      
-    });
-
-    if (!evento) {
-      throw new NotFoundException('Evento não encontrado.');
-    }
-
-    if (evento.lotes.length > 0 || evento.inscricoes.length > 0){
-      throw new ConflictException('Não é possível excluir evento com lotes ou inscrições!')
-    }
-
-    return this.prisma.evento.delete({
-      where: {id},
-    });
-
-  }
+  await this.prisma.evento.delete({
+    where: { id },
+  });
+}
 }

@@ -1,27 +1,34 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import { cookies } from 'next/headers';
+import { logoutAction } from './actions/auth';
+import './globals.css';
+import Image from 'next/image';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "EvenToon | Shows e muito mais",
+  title: 'EvenToon | Shows e muito mais',
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
-  return (
- <html lang="pt-BR">
-      <body>
-        <header className="cabecalho">
+export default async function RootLayout({
+  children,
+}: LayoutProps<'/'>) {
+  const armazenamento = await cookies();
+  const autenticado = Boolean(armazenamento.get('token')?.value);
 
+  return (
+    <html lang="pt-BR">
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <header className="cabecalho">
           <div className="faixa">
             <div className="vermelho"></div>
             <div className="amarelo"></div>
@@ -29,23 +36,30 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </div>
 
           <div className="conteudo-cabecalho">
-            <img
-              src="/icone.png"
-              alt="Logo do sistema"
-              className="logo"
-            />
+           <Image
+            src="/icone.png"
+            alt="Logo do sistema"
+            width={48}
+            height={48}
+           className="logo"
+           />
 
             <div>
               <h1>Sistema de Eventos</h1>
               <p>Gestão de eventos e inscrições</p>
             </div>
-          </div>
 
+            {autenticado && (
+              <form action={logoutAction} className="formulario-sair">
+                <button type="submit" className="botao-sair">
+                  Sair
+                </button>
+              </form>
+            )}
+          </div>
         </header>
 
-        <main>
-          {children}
-        </main>
+        <main>{children}</main>
       </body>
     </html>
   );

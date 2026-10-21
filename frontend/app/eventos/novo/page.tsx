@@ -1,10 +1,14 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import styles from './page.module.css';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import styles from './page.module.css';
+import { criarEvento } from '../../actions/eventos';
 
 export default function NovoEvento() {
+  const router = useRouter();
+
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [local, setLocal] = useState('');
@@ -20,36 +24,20 @@ export default function NovoEvento() {
     setCarregando(true);
 
     try {
-      const response = await fetch('http://localhost:3000/eventos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nome,
-          descricao,
-          local,
-          data,
-          organizadorId: 1,
-        }),
+      const resultado = await criarEvento({
+        nome: nome.trim(),
+        descricao: descricao.trim() || undefined,
+        local: local.trim(),
+        data,
       });
 
-      const resultado = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          typeof resultado.message === 'string'
-            ? resultado.message
-            : 'Não foi possível cadastrar o evento.'
-        );
+      if (resultado.erro) {
+        setMensagem(resultado.erro);
+        return;
       }
 
-      setMensagem('Evento cadastrado com sucesso!');
-
-      setNome('');
-      setDescricao('');
-      setLocal('');
-      setData('');
+      router.push('/');
+      router.refresh();
     } catch (erro) {
       setMensagem(
         erro instanceof Error
@@ -63,11 +51,11 @@ export default function NovoEvento() {
 
   return (
     <main className={styles.container}>
-
       <section className={styles.formulario}>
-      <Link href="/" className={styles.linkVoltar}>
-        Voltar para eventos
-      </Link>
+        <Link href="/" className={styles.linkVoltar}>
+          Voltar para eventos
+        </Link>
+
         <p className={styles.subtitulo}>GERENCIAMENTO</p>
 
         <h1>Novo evento</h1>
@@ -102,7 +90,7 @@ export default function NovoEvento() {
             type="text"
             value={local}
             onChange={(event) => setLocal(event.target.value)}
-            placeholder="Arena do Grêmio"
+            placeholder="Auditório da UPF"
             required
           />
 
@@ -120,7 +108,7 @@ export default function NovoEvento() {
           </button>
 
           {mensagem && (
-            <p className={styles.mensagem} role="status">
+            <p className={styles.mensagem} role="alert">
               {mensagem}
             </p>
           )}

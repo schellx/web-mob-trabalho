@@ -3,16 +3,11 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import styles from './page.module.css';
-
-type Evento = {
-  id: number;
-  nome: string;
-  descricao: string | null;
-  local: string;
-  data: string;
-};
-
-const API_URL = 'http://localhost:3000';
+import {
+  listarEventos,
+  excluirEvento as excluirEventoServidor,
+  type Evento,
+} from './actions/eventos';
 
 function formatarData(data: string) {
   const dataLocal = new Date(`${data.slice(0, 10)}T12:00:00`);
@@ -35,24 +30,21 @@ export default function Home() {
 
     async function carregarEventos() {
       try {
-        const response = await fetch(`${API_URL}/eventos`);
+        const resultado = await listarEventos();
 
-        if (!response.ok) {
-          throw new Error('Não foi possível carregar os eventos.');
+        if (!ativo) {
+          return;
         }
 
-        const dados: Evento[] = await response.json();
-
-        if (ativo) {
-          setEventos(dados);
+        if (resultado.erro) {
+          setErro(resultado.erro);
+          return;
         }
-      } catch (erro) {
+
+        setEventos(resultado.eventos ?? []);
+      } catch {
         if (ativo) {
-          setErro(
-            erro instanceof Error
-              ? erro.message
-              : 'Erro ao carregar eventos.'
-          );
+          setErro('Não foi possível carregar os eventos.');
         }
       } finally {
         if (ativo) {
@@ -81,18 +73,10 @@ export default function Home() {
     setMensagem('');
 
     try {
-      const response = await fetch(`${API_URL}/eventos/${id}`, {
-        method: 'DELETE',
-      });
+      const resultado = await excluirEventoServidor(id);
 
-      const resultado = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        throw new Error(
-          typeof resultado?.message === 'string'
-            ? resultado.message
-            : 'Não foi possível excluir o evento.'
-        );
+      if (resultado.erro) {
+        throw new Error(resultado.erro);
       }
 
       setEventos((eventosAtuais) =>
@@ -110,7 +94,7 @@ export default function Home() {
   }
 
   return (
-    <main className={styles.container}>
+    <div className={styles.container}>
       <header className={styles.header}>
         <div>
           <p className={styles.subtitulo}>GERENCIAMENTO</p>
@@ -166,6 +150,13 @@ export default function Home() {
 
               <div className={styles.acoes}>
                 <Link
+                  href={`/eventos/${evento.id}`}
+                  className={styles.botaoEditar}
+                >
+                  Ver detalhes
+                </Link>
+
+                <Link
                   href={`/eventos/${evento.id}/editar`}
                   className={styles.botaoEditar}
                 >
@@ -184,6 +175,6 @@ export default function Home() {
           ))}
         </section>
       )}
-    </main>
+    </div>
   );
 }

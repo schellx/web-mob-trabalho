@@ -8,7 +8,12 @@ describe('EventosController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EventosController],
-      providers: [EventosService],
+      providers: [
+        {
+          provide: EventosService,
+          useValue: {},
+        },
+      ],
     }).compile();
 
     controller = module.get<EventosController>(EventosController);
