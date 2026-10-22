@@ -8,7 +8,7 @@
 
 | Campo | Valor |
 |---|---|
-| **Nome do projeto** | _(ex: Central de Suporte Interno)_ |
+| **Nome do projeto** | EvenToon |
 | **Grupo** | _Maria Eduarda Schell / João Vitor Dalla Lana_ |
 | **Integrantes** | _Maria Eduarda Schell / João Vitor Dalla Lana_ |
 | **Disciplina** | Programação Web e Mobile |

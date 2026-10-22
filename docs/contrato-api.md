@@ -1,7 +1,6 @@
 # Contrato da API
 
-> **Instruções:** Este documento especifica a interface REST que o backend expõe e que os dois clientes consomem. Deve ser entregue ao final da **Etapa 1** e mantido atualizado a cada mudança de endpoint. Remova os blocos `> instrução` após preenchê-los.
-
+Este documento descreve os endpoints implementados na API do sistema de credenciamento e check-in de eventos, incluindo autenticação, permissões, dados aceitos e respostas retornadas pelo backend.
 ---
 
 ## Por que este documento existe
@@ -21,11 +20,11 @@ A régua de qualidade é esta: na entrega final, o contrato precisa ser suficien
 
 | Campo | Valor |
 |---|---|
-| **Projeto** | |
-| **Versão do contrato** | 1.0 |
-| **Última atualização** | |
-| **URL base (desenvolvimento)** | `http://localhost:3000` |
-| **Formato** | JSON (`Content-Type: application/json`) |
+| Projeto | Eventoon |
+| Versão do contrato | 1.1 |
+| Última atualização | 21/10/2026 |
+| URL base (desenvolvimento) | `http://localhost:3000` |
+| Formato | JSON (`Content-Type: application/json`) |
 
 > **Nota para o app mobile:** `localhost` dentro do emulador Android aponta para o próprio emulador, não para a máquina do desenvolvedor. Use `http://10.0.2.2:3000` no emulador Android, ou o IP da máquina na rede local para dispositivo físico. Registre a URL usada por cada ambiente na configuração do app, nunca fixa no meio do código.
 
@@ -35,50 +34,73 @@ A régua de qualidade é esta: na entrega final, o contrato precisa ser suficien
 
 ### 1.1 Nomenclatura
 
-- Recursos no plural e em português, sem acento: `/chamados`, `/inspecoes`, `/fichas`
-- Campos em `camelCase`, sem acento: `dataAbertura`, `situacao`, `indiceConformidade`
-- Identificadores técnicos em inglês: `id`, `createdAt`, `updatedAt`, `page`, `limit`
+Os endpoints são organizados por recurso, utilizando nomes em português e sem acentos. Os recursos implementados nesta etapa são eventos e autenticação.
+
+Os endpoints de autenticação são `/auth/login` e `/auth/perfil`. As operações de gerenciamento de eventos utilizam `/eventos` e `/eventos/:id`.
+
+Os campos dos objetos utilizam nomes em português, com identificadores técnicos como `id`. Os identificadores dos usuários e eventos são números inteiros gerados pelo banco de dados.
+
+As datas são representadas por strings no formato ISO 8601. Os campos utilizados no recurso Evento são `id`, `nome`, `descricao`, `local`, `data`, `criadoEm` e `organizadorId`.
 
 ### 1.2 Métodos e status esperados
 
 | Operação | Método e caminho | Sucesso | Erros comuns |
 |---|---|---|---|
-| Listar | `GET /recursos` | `200` | `401` |
-| Obter um | `GET /recursos/:id` | `200` | `401`, `404` |
-| Criar | `POST /recursos` | `201` | `400`, `401`, `409` |
-| Atualizar | `PATCH /recursos/:id` | `200` | `400`, `401`, `404` |
-| Remover | `DELETE /recursos/:id` | `204` | `401`, `404`, `409` |
+| Login | POST /auth/login | 200 | 400, 401 |
+| Consultar perfil | GET /auth/perfil | 200 | 401 |
+| Listar eventos | GET /eventos | 200 | 401 |
+| Consultar evento | GET /eventos/:id | 200 | 400, 401, 404 |
+| Cadastrar evento | POST /eventos | 201 | 400, 401, 403 |
+| Atualizar evento | PATCH /eventos/:id | 200 | 400, 401, 403, 404 |
+| Excluir evento | DELETE /eventos/:id | 204 | 400, 401, 403, 404, 409 |
 
-> Ajuste conforme o domínio. Operações de transição de estado costumam ficar melhor como sub-recurso (`POST /chamados/:id/resolucao`) do que como campo em um `PATCH` genérico — decida e registre a escolha.
+Os códigos de status estão detalhados nas seções específicas de cada endpoint. As operações que exigem um identificador numérico podem retornar `400` quando o parâmetro informado não é válido. As operações restritas ao perfil ORGANIZADOR podem retornar `403` quando o usuário autenticado não possui a permissão necessária.
 
 ### 1.3 Formato de erro
 
-Toda resposta de erro segue o mesmo formato, em qualquer endpoint:
+A API utiliza o formato padrão de erros do NestJS. O campo `statusCode` informa o código HTTP, o campo `message` contém a descrição do erro e o campo `error` apresenta o tipo de erro.
+
+Nas falhas de validação, `message` pode conter uma lista de mensagens. Em outros erros, como recurso não encontrado ou acesso não autorizado, pode conter uma única mensagem.
+
+Exemplo de erro de validação:
 
 ```json
 {
   "statusCode": 400,
-  "message": ["titulo nao pode ser vazio", "categoriaId deve ser um uuid"],
+  "message": [
+    "nome should not be empty",
+    "local must be a string"
+  ],
   "error": "Bad Request"
 }
 ```
 
-> Este é o formato padrão do NestJS. Se o grupo adotar um formato próprio, descreva-o aqui — e implemente-o com um filtro de exceção, não repetindo a estrutura em cada controller.
-
-### 1.4 Paginação
-
-> Descreva a estratégia adotada nas listagens. Exemplo:
-
-`GET /recursos?page=1&limit=20`
+Exemplo de recurso não encontrado:
 
 ```json
 {
-  "dados": [],
-  "total": 0,
-  "page": 1,
-  "limit": 20
+  "statusCode": 404,
+  "message": "Evento não encontrado.",
+  "error": "Not Found"
 }
 ```
+
+O backend utiliza um `ValidationPipe` global com as seguintes opções:
+
+- `whitelist`: considera apenas as propriedades que possuem regras de validação.
+- `forbidNonWhitelisted`: rejeita requisições que contenham propriedades não permitidas.
+- `transform`: transforma os dados recebidos conforme os tipos definidos.
+- `enableImplicitConversion`: permite conversões implícitas de tipos quando aplicáveis.
+
+Não há um filtro de exceções personalizado configurado no arquivo `main.ts`. Os erros seguem o tratamento padrão do NestJS, incluindo as exceções lançadas pelos serviços e guards.
+
+### 1.4 Paginação
+
+A listagem de eventos não utiliza paginação nesta versão da API. O endpoint `GET /eventos` retorna um array JSON contendo os eventos encontrados, ordenados pela data do evento em ordem crescente.
+
+Os parâmetros `page` e `limit` não estão implementados nesse endpoint.
+
+A paginação poderá ser adicionada futuramente caso o volume de eventos exija limitar a quantidade de registros retornados.
 
 ### 1.5 Datas
 
@@ -90,367 +112,322 @@ Todas as datas trafegam em ISO 8601, em UTC: `2026-08-13T14:30:00.000Z`. A conve
 
 ### 2.1 Estratégia
 
-> Descreva o fluxo: como o token é obtido, quanto tempo dura, se existe refresh, como é enviado.
+A API utiliza autenticação por JWT. O usuário informa seu e-mail e sua senha no login. Se as credenciais forem válidas, o backend retorna um token de acesso e os dados básicos do usuário.
 
-Requisições autenticadas enviam o token no cabeçalho:
+As requisições autenticadas devem enviar o token no cabeçalho:
 
-```
+```http
 Authorization: Bearer <token>
 ```
 
+A validade do token é de uma hora. O backend verifica a assinatura e a expiração do JWT utilizando a variável de ambiente JWT_SECRET. Tokens inválidos ou expirados são rejeitados.
+
+As senhas são armazenadas como hash no banco de dados. Durante o login, a senha informada é comparada com o hash armazenado para verificar as credenciais.
+
+No cliente web, o token é armazenado em um cookie HttpOnly. Nas operações autenticadas, o servidor Next.js utiliza esse token no cabeçalho Authorization para realizar as chamadas à API.
+
+Não há endpoint de renovação de token implementado no controlador de autenticação atual.
+
 ### 2.2 Endpoints de autenticação
 
-#### `POST /auth/login`
+#### POST /auth/login
 
-Autentica o usuário e devolve o token de acesso.
+Autentica o usuário utilizando e-mail e senha.
 
-**Requisição**
+Requisição:
 
 ```json
 {
-  "email": "usuario@exemplo.com",
-  "senha": "..."
+  "email": "organizador@exemplo.com",
+  "senha": "senha123"
 }
 ```
 
-**Resposta `200`**
+Resposta 200:
 
 ```json
 {
-  "accessToken": "eyJhbGciOi...",
+  "access_token": "eyJhbGciOi...",
   "usuario": {
-    "id": "uuid",
-    "nome": "Nome do Usuario",
-    "perfil": "atendente"
+    "id": 1,
+    "nome": "Nome do usuário",
+    "email": "organizador@exemplo.com",
+    "tipo": "ORGANIZADOR"
   }
 }
 ```
 
-**Erros**
+O token apresentado é apenas ilustrativo.
+
+Erros:
+| Status | Quando |
+|---|---|
+| 200 | Login realizado com sucesso. |
+| 400 | E-mail com formato inválido ou senha vazia. |
+| 401 | E-mail ou senha incorretos. |
+
+#### GET /auth/perfil
+
+Retorna os dados do usuário autenticado. É necessário enviar um token JWT válido no cabeçalho Authorization.
+
+Resposta 200:
+
+```json
+{
+  "id": 1,
+  "email": "organizador@exemplo.com",
+  "tipo": "ORGANIZADOR"
+}
+```
+
+Erros:
 
 | Status | Quando |
 |---|---|
-| `400` | Corpo inválido |
-| `401` | Credenciais incorretas |
+| 200 | Consulta realizada com sucesso. |
+| 401 | Token ausente, inválido ou expirado. |
 
-#### `POST /auth/registro`
+#### Cadastro de usuários
 
-> Descreva, se houver auto-cadastro. Caso contrário, remova e explique como os usuários são criados.
+O endpoint POST /auth/registro não está implementado no controlador de autenticação atual. Portanto, não há uma rota de cadastro público de usuários documentada nesta versão da API.
 
 ### 2.3 Perfis e permissões
 
-> Liste os perfis do sistema e o que cada um pode fazer. Esta tabela é o que o guard de autorização implementa.
-
 | Perfil | Pode | Não pode |
 |---|---|---|
-| | | |
-| | | |
+| ORGANIZADOR | Cadastrar eventos, listar os próprios eventos, consultar seus detalhes, editar e excluir os próprios eventos. | Editar ou excluir eventos de outro organizador. Excluir eventos que possuam lotes ou inscrições vinculados. |
+| RECEPCIONISTA | Consultar a lista geral de eventos e os detalhes de qualquer evento. | Cadastrar, editar ou excluir eventos. |
+| PARTICIPANTE | Consultar a lista geral de eventos e os detalhes de qualquer evento. | Cadastrar, editar ou excluir eventos. |
+
+Todas as rotas de eventos exigem autenticação. As operações de cadastro, edição e exclusão são restritas ao perfil ORGANIZADOR.
+
+O backend associa cada evento criado ao organizador autenticado, sem depender de um identificador de organizador enviado pelo cliente. Nas operações de consulta individual, edição e exclusão, também verifica se o evento pertence ao organizador autenticado.
+
+A exclusão é recusada quando o evento possui lotes ou inscrições vinculados, retornando o status 409.
 
 ### 2.4 Armazenamento do token em cada cliente
 
 | Cliente | Onde o token fica | Nível de autenticação | Observação |
 |---|---|---|---|
-| Web (Next.js) | | completa | |
-| Mobile (Flutter) | | _(completa / simplificada / simulada — conforme declarado no PRD)_ | |
-
-> **Regra inegociável:** sessão simplificada ou simulada no app mobile nunca significa afrouxar a API. Os endpoints continuam protegidos pelo mesmo guard, e o app continua apresentando um token válido em toda requisição autenticada — o que muda é apenas **como** esse token é obtido, não se ele é exigido. Criar uma rota desprotegida só para o app funcionar sem login é falha de segurança, não simplificação aceitável.
+| Web (Next.js) | Cookie HttpOnly | Completa | O servidor Next.js utiliza o token nas requisições autenticadas à API. |
+| Mobile (Flutter) | Ainda não implementado nesta etapa | A definir | A estratégia de autenticação do aplicativo será documentada durante a implementação mobile. |
 
 ---
 
 ## 3. Recursos
 
-> Repita o bloco abaixo para cada recurso do domínio. Documente **todos** os endpoints do MVP; endpoints de prioridade Média ou Baixa podem ficar como esboço, desde que marcados como tal.
->
-> **Antes de preencher, leia o [Anexo A](#anexo-a--exemplo-preenchido-domínio-de-biblioteca)**, no final deste documento: ele traz o mesmo bloco preenchido de ponta a ponta, com um recurso simples e um endpoint de regra de negócio.
+Esta seção descreve os recursos implementados na API, incluindo suas representações, os campos aceitos, as regras de validação e os códigos de resposta. Nesta etapa, o recurso documentado é Evento, utilizado para cadastrar, consultar, editar e excluir eventos.
 
 ---
 
-### 3.1 `<Recurso>`
+### 3.1 Evento
 
-**Descrição:** _(o que este recurso representa no domínio)_
+Descrição: representa um evento que pode receber inscrições e possuir lotes de vagas.
 
-**Consumido por:** _(web / mobile / ambos)_
+Consumido por: web nesta etapa. O consumo pelo aplicativo mobile será realizado na etapa de implementação do Flutter.
 
 #### Representação
 
 ```json
 {
-  "id": "uuid",
-  "campoDominio": "string",
-  "situacao": "aberto",
-  "createdAt": "2026-08-13T14:30:00.000Z",
-  "updatedAt": "2026-08-13T14:30:00.000Z"
-}
-```
-
-| Campo | Tipo | Obrigatório | Observação |
-|---|---|---|---|
-| `id` | uuid | — | Gerado pelo servidor |
-| | | | |
-
-#### `GET /<recursos>`
-
-Lista os registros.
-
-| Parâmetro de consulta | Tipo | Descrição |
-|---|---|---|
-| `page` | número | Página, padrão 1 |
-| `limit` | número | Itens por página, padrão 20 |
-| | | |
-
-**Resposta `200`** — objeto paginado conforme a seção 1.4.
-
-#### `GET /<recursos>/:id`
-
-**Resposta `200`** — a representação acima.
-**Resposta `404`** — registro inexistente.
-
-#### `POST /<recursos>`
-
-**Requisição**
-
-```json
-{
-  "campoDominio": "string"
-}
-```
-
-**Resposta `201`** — a representação criada.
-
-**Regras de validação**
-
-| Campo | Regra |
-|---|---|
-| | |
-
-#### `PATCH /<recursos>/:id`
-
-**Requisição** — campos parciais da representação.
-**Resposta `200`** — a representação atualizada.
-
-#### `DELETE /<recursos>/:id`
-
-**Resposta `204`** — sem corpo.
-**Resposta `409`** — quando existe dependência que impede a remoção. _(descreva a regra)_
-
----
-
-## 4. Endpoints de regra de negócio
-
-> Nem tudo é CRUD. Documente aqui os endpoints que executam a lógica própria do domínio — cálculo, transição de estado, geração. São eles que dão substância ao sistema.
-
-### 4.1 `POST /<recurso>/:id/<acao>`
-
-**O que faz:** _(descreva a regra executada)_
-
-**Pré-condições:** _(estado necessário para a ação ser válida)_
-
-**Requisição**
-
-```json
-{}
-```
-
-**Resposta `200`**
-
-```json
-{}
-```
-
-**Erros específicos**
-
-| Status | Quando |
-|---|---|
-| `409` | _(ação incompatível com o estado atual do recurso)_ |
-
----
-
-## 5. Diferenças de consumo entre os clientes
-
-> Se algum endpoint aceita parâmetros pensados para um cliente específico — um formato reduzido para a lista do mobile, por exemplo — registre aqui. O objetivo é deixar explícito que a API é uma só, com variações declaradas.
-
-| Endpoint | Diferença | Cliente | Motivo |
-|---|---|---|---|
-| | | | |
-
----
-
-## 6. Como verificar o contrato
-
-> Registre como o grupo confere que a API implementada corresponde a este documento.
-
-- [ ] Coleção de requisições versionada no repositório _(arquivo `.http`, Insomnia, Postman)_
-- [ ] Swagger habilitado no backend _(`@nestjs/swagger`)_ — URL: `http://localhost:3000/api`
-- [ ] Tipos do cliente web derivados do contrato, em `web/src/types/`
-- [ ] Modelos do mobile derivados do contrato, em `mobile/lib/models/`
-
-> Se o grupo habilitar o Swagger, este documento continua sendo necessário: o Swagger descreve a API que **existe**, e o contrato descreve a que foi **acordada**. Os dois convergem na entrega final, mas cumprem papéis diferentes durante o projeto.
-
----
-
-## 7. Histórico de revisões
-
-> Toda mudança de endpoint entra aqui, com a data e quem foi avisado. É este histórico que explica, depois, por que um cliente parou de funcionar.
-
-| Versão | Data | Alteração | Impacto nos clientes |
-|---|---|---|---|
-| 1.0 | | Versão inicial | — |
-| | | | |
-
-
----
-
-## Anexo A — exemplo preenchido (domínio de biblioteca)
-
-> Este anexo existe para mostrar **a forma**, não o conteúdo. Ele usa o domínio de biblioteca justamente porque ele é o das aulas práticas e **não pode ser o tema do trabalho** — não há como copiar daqui para o seu projeto, só como se orientar pelo nível de detalhe.
->
-> Repare no que faz este exemplo funcionar: todo campo tem tipo, toda operação tem os códigos de status que devolve, e as regras que impedem uma operação estão escritas como resposta de erro, não como texto solto. É esse nível que permite alguém implementar o cliente sem perguntar nada.
->
-> Apague este anexo do seu contrato depois de preencher o documento.
-
-### A.1 `Livro`
-
-**Descrição:** obra disponível no acervo. Um livro pode ter vários exemplares emprestados ao longo do tempo, mas só um empréstimo ativo por vez.
-
-**Consumido por:** web (cadastro e acervo completo) e mobile (busca e consulta)
-
-#### Representação
-
-```json
-{
-  "id": "9f1c2b6e-4a7d-4b28-9a4e-2d5f8c1e7b30",
-  "titulo": "Dom Casmurro",
-  "autor": "Machado de Assis",
-  "isbn": "9788525406958",
-  "anoPublicacao": 1899,
-  "situacao": "disponivel",
-  "createdAt": "2026-03-10T13:02:41.000Z",
-  "updatedAt": "2026-03-10T13:02:41.000Z"
+  "id": 1,
+  "nome": "Evento de tecnologia",
+  "descricao": "Palestras e atividades de tecnologia",
+  "local": "Auditório principal",
+  "data": "2026-11-15T13:00:00.000Z",
+  "criadoEm": "2026-10-20T15:30:00.000Z",
+  "organizadorId": 1
 }
 ```
 
 | Campo | Tipo | Obrigatório na criação | Observação |
 |---|---|---|---|
-| `id` | uuid | — | Gerado pelo servidor |
-| `titulo` | string (1–200) | sim | |
-| `autor` | string (1–120) | sim | |
-| `isbn` | string (13) | sim | Único no acervo |
-| `anoPublicacao` | número inteiro | não | Entre 1450 e o ano corrente |
-| `situacao` | enum | — | `disponivel` \| `emprestado`; calculada pelo servidor, nunca enviada pelo cliente |
-| `createdAt`, `updatedAt` | ISO 8601 | — | Gerados pelo servidor |
+| `id` | número inteiro | Não | Gerado automaticamente pelo servidor. |
+| `nome` | string | Sim | Não pode ser vazio. |
+| `descricao` | string ou null | Não | Descrição opcional do evento. |
+| `local` | string | Sim | Não pode ser vazio. |
+| `data` | data/hora ISO 8601 | Sim | Deve ser uma data válida. |
+| `criadoEm` | data/hora ISO 8601 | Não | Gerado automaticamente pelo banco. |
+| `organizadorId` | número inteiro | Não | Definido pelo backend com base no usuário autenticado. |
 
-#### `GET /livros`
+#### GET /eventos
 
-Lista o acervo. Rota autenticada — qualquer perfil.
+Lista os eventos cadastrados. É necessário estar autenticado.
 
-| Parâmetro de consulta | Tipo | Descrição |
-|---|---|---|
-| `page` | número | Página, padrão 1 |
-| `limit` | número | Itens por página, padrão 20, máximo 100 |
-| `busca` | string | Filtra por título ou autor, sem diferenciar maiúsculas |
-| `situacao` | enum | `disponivel` ou `emprestado` |
+Os eventos são retornados em ordem crescente de data. Quando o usuário autenticado possui o perfil ORGANIZADOR, são listados apenas os eventos associados a ele. Para os perfis RECEPCIONISTA e PARTICIPANTE, a listagem retorna todos os eventos.
 
-**Resposta `200`**
+Resposta 200: lista de eventos em formato JSON. A resposta é um array de objetos, sem envelope de paginação.
+
+Exemplo:
 
 ```json
-{
-  "dados": [ { "id": "...", "titulo": "Dom Casmurro", "autor": "Machado de Assis", "isbn": "9788525406958", "anoPublicacao": 1899, "situacao": "disponivel", "createdAt": "...", "updatedAt": "..." } ],
-  "total": 143,
-  "page": 1,
-  "limit": 20
-}
+[
+  {
+    "id": 1,
+    "nome": "Evento de tecnologia",
+    "descricao": "Palestras e atividades de tecnologia",
+    "local": "Auditório principal",
+    "data": "2026-11-15T13:00:00.000Z",
+    "criadoEm": "2026-10-20T15:30:00.000Z",
+    "organizadorId": 1
+  }
+]
 ```
 
 | Status | Quando |
 |---|---|
-| `200` | Sucesso, mesmo que a lista venha vazia |
-| `401` | Token ausente ou inválido |
+| 200 | Consulta realizada com sucesso, mesmo que a lista esteja vazia. |
+| 401 | Token ausente ou inválido. |
 
-#### `GET /livros/:id`
+#### GET /eventos/:id
 
-**Resposta `200`** — a representação acima.
+Consulta os dados de um evento pelo seu identificador numérico. É necessário estar autenticado.
+
+Resposta 200: retorna o objeto do evento conforme a representação definida nesta seção.
 
 | Status | Quando |
 |---|---|
-| `404` | Não existe livro com esse `id` |
+| 200 | Evento encontrado e acessível ao usuário. |
+| 400 | Identificador não numérico. |
+| 401 | Token ausente ou inválido. |
+| 404 | Evento inexistente ou não pertencente ao organizador autenticado. |
 
-#### `POST /livros`
+#### POST /eventos
 
-Cadastra um livro. Rota autenticada — **somente perfil `bibliotecario`**.
+Cadastra um evento. Somente usuários com perfil ORGANIZADOR podem executar esta operação.
 
-**Requisição**
+Requisição:
 
 ```json
 {
-  "titulo": "Memórias Póstumas de Brás Cubas",
-  "autor": "Machado de Assis",
-  "isbn": "9788535911503",
-  "anoPublicacao": 1881
+  "nome": "Evento de tecnologia",
+  "descricao": "Palestras e atividades de tecnologia",
+  "local": "Auditório principal",
+  "data": "2026-11-15T13:00:00.000Z"
 }
 ```
 
-**Resposta `201`** — a representação criada, com `situacao` em `disponivel`.
+O campo `organizadorId` não deve ser enviado pelo cliente. O backend obtém esse identificador a partir do usuário autenticado.
+
+Resposta 201: retorna o evento criado, incluindo seu identificador, a data de criação e o identificador do organizador.
+
+Regras de validação:
+
+| Campo | Regra |
+|---|---|
+| `nome` | Deve ser uma string não vazia. |
+| `descricao` | Opcional; quando informado, deve ser uma string. |
+| `local` | Deve ser uma string não vazia. |
+| `data` | Obrigatória e deve corresponder a uma data válida. |
 
 | Status | Quando |
 |---|---|
-| `400` | Campo obrigatório ausente, ISBN fora do formato, ano fora da faixa |
-| `403` | Perfil `leitor` tentando cadastrar |
-| `409` | Já existe livro com esse ISBN |
+| 201 | Evento cadastrado com sucesso. |
+| 400 | Dados inválidos. |
+| 401 | Token ausente ou inválido. |
+| 403 | Usuário sem perfil ORGANIZADOR. |
 
-#### `DELETE /livros/:id`
+#### PATCH /eventos/:id
 
-**Resposta `204`** — sem corpo.
+Atualiza os dados de um evento existente. Somente o organizador responsável pelo evento pode realizar a operação.
+
+Requisição: objeto JSON contendo apenas os campos que serão alterados. Os campos disponíveis são `nome`, `descricao`, `local` e `data`, seguindo as regras de validação do cadastro.
+
+Resposta 200: retorna o evento atualizado.
 
 | Status | Quando |
 |---|---|
-| `403` | Perfil `leitor` |
-| `404` | Livro inexistente |
-| `409` | Livro com empréstimo ativo — devolva antes de remover |
+| 200 | Evento atualizado com sucesso. |
+| 400 | Identificador ou dados inválidos. |
+| 401 | Token ausente ou inválido. |
+| 403 | Usuário sem perfil ORGANIZADOR. |
+| 404 | Evento inexistente ou não pertencente ao organizador autenticado. |
+
+#### DELETE /eventos/:id
+
+Exclui um evento existente. Somente o organizador responsável pelo evento pode realizar a operação.
+
+A exclusão não é permitida se o evento possuir lotes ou inscrições vinculados.
+
+Resposta 204: exclusão realizada com sucesso, sem corpo na resposta.
+
+| Status | Quando |
+|---|---|
+| 204 | Evento excluído com sucesso. |
+| 400 | Identificador não numérico. |
+| 401 | Token ausente ou inválido. |
+| 403 | Usuário sem perfil ORGANIZADOR. |
+| 404 | Evento inexistente ou não pertencente ao organizador autenticado. |
+| 409 | Existem lotes ou inscrições vinculados ao evento. |
+---
+
+## 4. Endpoints de regra de negócio
+
+Nesta versão da API, não há um endpoint separado para executar uma operação específica de regra de negócio. A regra implementada atualmente está associada à exclusão de eventos.
+
+### 4.1 Regra de exclusão de eventos
+
+Endpoint: DELETE /eventos/:id
+
+O que faz: exclui um evento pertencente ao organizador autenticado, desde que não existam lotes ou inscrições vinculados a ele.
+
+Pré-condições:
+- O usuário deve estar autenticado.
+- O usuário deve possuir o perfil ORGANIZADOR.
+- O evento deve existir e pertencer ao organizador autenticado.
+- O evento não pode possuir lotes ou inscrições vinculados.
+
+Requisição: não possui corpo. O identificador do evento é enviado como parâmetro da rota.
+
+Resposta 204: evento excluído com sucesso, sem corpo na resposta.
+
+Erros específicos:
+
+| Status | Quando |
+|---|---|
+| 401 | Token ausente ou inválido. |
+| 403 | Usuário sem perfil ORGANIZADOR. |
+| 404 | Evento inexistente ou não pertencente ao organizador autenticado. |
+| 409 | O evento possui lotes ou inscrições vinculados e não pode ser excluído. |
+
+A verificação é realizada no backend antes da exclusão. Dessa forma, a regra não depende apenas da interface web e também se aplica a outros clientes que utilizem a API.
+---
+
+## 5. Diferenças de consumo entre os clientes
+
+Até esta etapa, não foram implementadas diferenças específicas nos endpoints para atender separadamente ao cliente web e ao aplicativo mobile. A API utiliza o mesmo contrato REST, com respostas em JSON e as mesmas regras de autenticação e autorização.
+
+O frontend web utiliza os endpoints de autenticação e gerenciamento de eventos. O consumo pelo aplicativo mobile será definido durante a implementação do Flutter, mantendo o contrato compartilhado com o backend.
+
+| Endpoint | Diferença | Cliente | Motivo |
+|---|---|---|---|
+| Endpoints de autenticação e eventos | Nenhuma diferença específica implementada até esta etapa. | Web; mobile ainda não integrado. | Manter uma única API para os dois clientes. |
 
 ---
 
-### A.2 Endpoint de regra de negócio — devolução
+## 6. Como verificar o contrato
 
-> Este é o tipo de endpoint que sustenta o "lógica além do CRUD". Repare que ele **não** é um `PATCH` genérico: a devolução é uma operação do domínio, com pré-condições próprias, e por isso vira um sub-recurso.
+A correspondência entre o contrato e a API é verificada por meio da compilação dos componentes e de testes manuais das requisições.
 
-#### `POST /emprestimos/:id/devolucao`
+Até o checkpoint 2, foram realizados testes de autenticação, consulta e cadastro de eventos utilizando requisições HTTP. Também foram verificados o acesso às rotas protegidas e o comportamento das operações de gerenciamento de eventos.
 
-**O que faz:** encerra um empréstimo ativo, devolve o livro ao acervo e calcula a multa por atraso.
+A validação do contrato deve considerar os seguintes itens:
 
-**Pré-condições:** o empréstimo existe e está com `situacao` em `ativo`.
+- [ ] Coleção de requisições versionada no repositório, em arquivo `.http`, Insomnia ou Postman.
+- [ ] Swagger habilitado no backend. Até o momento, não há configuração do Swagger no arquivo `backend/src/main.ts`.
+- [ ] Tipos do frontend conferidos em relação ao contrato da API.
+- [ ] Modelos do aplicativo mobile conferidos em relação ao contrato. A implementação mobile ainda não foi realizada nesta etapa.
 
-**Requisição:** sem corpo.
+A compilação bem-sucedida e os testes manuais ajudam a verificar o funcionamento dos endpoints, mas não substituem a atualização do contrato quando houver mudanças na API.
 
-**Resposta `200`**
-
-```json
-{
-  "id": "3c8a1f04-77b2-4c19-8e55-a1d9b6f2c084",
-  "livroId": "9f1c2b6e-4a7d-4b28-9a4e-2d5f8c1e7b30",
-  "dataEmprestimo": "2026-03-01T14:00:00.000Z",
-  "dataPrevistaDevolucao": "2026-03-15T14:00:00.000Z",
-  "dataDevolucao": "2026-03-18T09:12:00.000Z",
-  "diasAtraso": 3,
-  "multa": 4.5,
-  "situacao": "devolvido"
-}
-```
-
-| Status | Quando |
-|---|---|
-| `401` | Token ausente ou inválido |
-| `404` | Não existe empréstimo com esse `id` |
-| `409` | O empréstimo já foi devolvido |
-
-**Regra do cálculo:** `multa = diasAtraso × 1,50`, com `diasAtraso` contado em dias corridos a partir de `dataPrevistaDevolucao`. Sem atraso, `diasAtraso` é `0` e `multa` é `0`. **O cálculo é feito no servidor** — o cliente exibe o valor que recebe, nunca o recalcula.
-
+O contrato deve permanecer alinhado ao código implementado, incluindo os campos das requisições e respostas, os códigos de status e as regras de autenticação e autorização.
 ---
 
-### A.3 Perfis e permissões do exemplo
+## 7. Histórico de revisões
 
-| Perfil | Pode | Não pode |
-|---|---|---|
-| `bibliotecario` | Cadastrar, editar e remover livros; registrar empréstimos e devoluções de qualquer leitor | — |
-| `leitor` | Consultar o acervo; ver e devolver os próprios empréstimos | Cadastrar livros; ver empréstimos de outros leitores |
+| Versão | Data | Alteração | Impacto nos clientes |
+|---|---|---|---|
+| 1.0 | 03/09/2026 | Criação inicial do contrato da API no repositório. | Definição inicial da interface entre o backend e os clientes. |
+| 1.1 | 21/10/2026 | Revisão do contrato com base no código implementado, incluindo autenticação, permissões, endpoints de eventos, validações, erros e paginação. | Web: contrato atualizado para as operações implementadas. Mobile: referência para a futura integração com a API. |
 
-> A coluna "Não pode" não é decorativa: cada linha dela vira um teste de `403` e um caso no guard de autorização.
+---

@@ -10,10 +10,10 @@
 
 | Campo | Valor |
 |---|---|
-| **Nome do projeto** | |
-| **Grupo** | |
-| **Integrantes** | |
-| **Repositório** | `https://github.com/...` |
+| **Nome do projeto** | Eventoon |
+| **Grupo** | A |
+| **Integrantes** | Maria Eduarda Schell, João Vitor Dalla Lana |
+| **Repositório** | `https://github.com/schellx/web-mob-trabalho.git` |
 | **Vídeo de apresentação** | _(link após a entrega)_ |
 
 ---
@@ -28,30 +28,31 @@
 
 | Ferramenta | Versão | Quem |
 |---|---|---|
-| Node.js | | |
-| Flutter SDK | | |
-| PostgreSQL | | |
-| Docker _(se o grupo usou)_ | | |
-| Emulador ou dispositivo usado no mobile | | |
-| Sistema operacional | | |
+| Node.js | 24.22.0 | |
+| Flutter SDK | Não utilizado nesta etapa | |
+| PostgreSQL | 18 | João |
+| Docker _(se o grupo usou)_ | Docker Desktop | João |
+| Emulador ou dispositivo usado no mobile | Não utilizado nesta etapa | |
+| Sistema operacional | Windows 10 | João |
+| Sistema operacional | Windows 11 | Maria |
 
-**Como o banco foi provisionado:** _( ) Docker Compose · ( ) PostgreSQL instalado na máquina · ( ) serviço hospedado_
+**Como o banco foi provisionado:** _(X) Docker Compose · ( ) PostgreSQL instalado na máquina · ( ) serviço hospedado_
 
 > Se não foi pelo `docker-compose.yml` do repositório, descreva em uma linha o que foi feito, para que outra pessoa reproduza.
 
 ### 1.2 Divergências em relação ao README
 
-> O que precisou ser feito além do que está no README para o ambiente funcionar? Erro de instalação, ajuste de porta, permissão, versão incompatível. Se nada divergiu, escreva "nenhuma" — isso também é informação.
-
 | Componente | O que divergiu | Como foi resolvido |
 |---|---|---|
+| Backend e autenticação | A variável `JWT_SECRET` não estava configurada no ambiente local. | A variável foi adicionada ao arquivo `.env` local para permitir o funcionamento da autenticação. |
+| Ambiente de desenvolvimento | Após reiniciar o computador, os comandos Node.js e npm não eram reconhecidos no terminal. | O ambiente foi ajustado e as versões instaladas foram verificadas. |
 | | | |
 
 ### 1.3 Endereços de rede entre os componentes
 
 | Origem | URL da API usada | Observação |
 |---|---|---|
-| Web (navegador) | | |
+| Web (navegador) | http://localhost:3000 |  Endereço local da API NestJS utilizada nos teste |
 | Mobile (emulador) | | `localhost` do emulador não é o da máquina |
 | Mobile (dispositivo físico) | | |
 
@@ -64,7 +65,8 @@
 ### 2.1 Ferramentas utilizadas
 
 | Ferramenta | Versão / Plano | Quem usou | Em que componente |
-|---|---|---|---|
+
+| ChatGPT | Plano gratuito | João/Maria | Backend, autenticação, integração web e correção de erros |
 | | | | |
 | | | | |
 
@@ -74,9 +76,9 @@
 
 | Situação | Ocorreu? | Onde e como foi corrigido |
 |---|---|---|
-| Código gerado com Next.js Pages Router (`getServerSideProps`, `pages/api/`) | | |
+| Código gerado com Next.js Pages Router (`getServerSideProps`, `pages/api/`) | | O frontend utiliza o App Router, com as páginas organizadas na pasta frontend/app. As alterações foram adaptadas à estrutura existente do projeto |
 | Prisma sem o adaptador `@prisma/adapter-pg`, ou importando de `@prisma/client` em vez do caminho gerado | | |
-| Decorators ou módulos de versão antiga do NestJS | | |
+| Decorators ou módulos de versão antiga do NestJS | Não foi identificado um problema específico de versão | A implementação utiliza controladores, serviços e guards do NestJS para organizar as rotas, autenticação e permissões. O código foi compilado após os ajustes|
 | Pacotes Flutter descontinuados ou incompatíveis com Flutter 3 | | |
 | Outro | | |
 
@@ -151,7 +153,7 @@
 
 ### 2.4 Reflexão sobre o uso de IA
 
-> Em um parágrafo: a IA acelerou o desenvolvimento? Em quais componentes foi mais útil e em quais atrapalhou? O grupo notou diferença entre gerar código de NestJS, de Next.js e de Flutter? O que aprenderam sobre usar IA de forma eficiente e responsável?
+A IA auxiliou no desenvolvimento do backend e do frontend, principalmente na implementação da autenticação, na integração entre os componentes, na correção de erros e na compreensão das ferramentas utilizadas. Ao longo do trabalho, foi necessário conferir as sugestões com a estrutura real do projeto, ajustar configurações e executar testes para identificar problemas que não ficavam evidentes apenas pela leitura do código. A experiência mostrou que a IA pode acelerar algumas tarefas, mas as respostas precisam ser analisadas antes de serem aplicadas, especialmente em questões de autenticação, permissões e compatibilidade entre versões. A compilação e os testes manuais foram importantes para verificar se as alterações funcionavam no projeto.
 
 ---
 
@@ -223,25 +225,76 @@
 
 ### Etapa 3 — Cliente web · Checkpoint 2
 
-**Período:** de ___ a ___ · **Redigido por:**
+Período: de 01/10/2026 a 20/10/2026
+Redigido por: Maria
 
-**O que foi implementado:**
+O que foi implementado:
 
-**Decisões técnicas:**
+- Integração inicial entre o frontend Next.js e o backend NestJS.
+- Página de listagem de eventos, inicialmente desenvolvida com dados de teste e depois integrada à API.
+- Formulário de cadastro de eventos integrado à API.
+- Operações de consulta, edição e exclusão de eventos.
+- Melhorias visuais nas páginas de gerenciamento de eventos.
+- Implementação da autenticação JWT no backend e do armazenamento de hash das senhas dos usuários.
+- Implementação do login no cliente web e utilização da sessão nas operações autenticadas.
+- Proteção das rotas de eventos conforme os perfis de acesso definidos pelo projeto.
+- Associação dos novos eventos ao organizador autenticado, sem depender de um organizador informado livremente pelo formulário.
+- Correção do método de exclusão de eventos para aguardar a consulta ao banco antes de verificar a existência do registro e seus vínculos.
+- Testes manuais de autenticação, consulta e cadastro de eventos, além da compilação do backend e do frontend.
 
-| Decisão | Alternativas consideradas | Justificativa | Risco ou consequência |
-|---|---|---|---|
-| | | | |
+Decisões técnicas:
 
-**Mudanças no contrato da API:**
+Foi utilizado Next.js no frontend e NestJS no backend para manter a interface separada das regras de negócio e permitir que outros clientes utilizem a mesma API.
 
-| Endpoint | O que mudou | Quem foi avisado | Contrato atualizado? |
-|---|---|---|---|
-| | | | |
+A autenticação foi implementada com JWT para identificar o usuário e permitir o controle de acesso conforme seu perfil. As senhas são armazenadas como hash no banco, em vez de texto puro.
 
-**Dificuldades:**
+O token de autenticação é guardado em um cookie HttpOnly, e as chamadas autenticadas enviam o token no cabeçalho Authorization. Essa abordagem mantém o token fora do acesso direto pelo JavaScript do navegador.
 
-**O que ficou para a próxima etapa:**
+No cadastro de eventos, o organizador passou a ser identificado pelo usuário autenticado. Com isso, o sistema não depende de um identificador de organizador escolhido pelo formulário.
+
+As operações de eventos foram separadas em rotas REST para listagem, consulta, cadastro, edição e exclusão. As regras de negócio e as verificações de permissão ficam no backend.
+
+Mudanças no contrato da API:
+
+POST /auth/login: implementado para autenticar o usuário e retornar o token JWT e os dados básicos da conta. O campo retornado pelo backend é access_token.. O contrato precisa ser conferido em docs/contrato-api.md.
+
+GET /auth/perfil: utilizado para consultar os dados do usuário autenticado. O contrato precisa ser conferido em docs/contrato-api.md.
+
+GET /eventos e GET /eventos/:id: utilizados para consultar a listagem e os detalhes dos eventos. É necessário conferir no contrato os formatos das respostas e os requisitos de autenticação.
+
+POST /eventos: utilizado para cadastrar eventos associados ao organizador autenticado. O contrato precisa refletir os campos aceitos pela API.
+
+PATCH /eventos/:id e DELETE /eventos/:id: utilizados para editar e excluir eventos, respeitando as regras de autenticação e autorização. As respostas e os possíveis erros precisam estar documentados.
+
+Dificuldades:
+
+Durante o desenvolvimento, ocorreram problemas de configuração do ambiente, como a ausência da variável JWT_SECRET e a indisponibilidade do PostgreSQL. Também foi necessário gerar novamente o Prisma Client após alterações no schema.
+
+Nos testes de cadastro de eventos, foi encontrada uma incompatibilidade entre o identificador do organizador esperado pelo Prisma e os dados enviados pelo cliente. A implementação foi ajustada para utilizar o organizador autenticado. Também foi corrigido o método de exclusão, que precisava aguardar o resultado da consulta antes de verificar o evento e suas relações.
+
+Validação realizada:
+
+Foram realizados testes manuais de login e consulta de eventos com autenticação. Também foi verificada a resposta 401 para consultas sem token. O cadastro de eventos foi testado após o ajuste da associação com o organizador autenticado.
+
+Conforme informado, os builds de produção do frontend e do backend foram executados sem erros, e as principais páginas foram testadas.
+
+Evidências no repositório:
+
+- Integração de autenticação e gerenciamento de eventos, commit 1955a4c: https://github.com/schellx/web-mob-trabalho/commit/1955a4c09eaf6f4c9b0447008beea1fb6be4d047
+- Conclusão do CRUD de eventos e melhorias visuais, commit cedb8ab: https://github.com/schellx/web-mob-trabalho/commit/cedb8ab1ecb671852cc993494c244115a36e99a5
+- Autenticação JWT e hash de senha, commit c8cc42a: https://github.com/schellx/web-mob-trabalho/commit/c8cc42ad1e5d202e839e86553dac8b4f33a335
+- Formulário de cadastro de eventos integrado à API, commit a4c64bf: https://github.com/schellx/web-mob-trabalho/commit/a4c64bfa492e721e6bdd7f8e164df417c5718126
+- Primeira página frontend com eventos de teste, commit 35cf072: https://github.com/schellx/web-mob-trabalho/commit/35cf072480ab2dd624fcc5d87382cca4ab8dac53
+
+O que ficou para a próxima etapa:
+
+- Atualizar o contrato da API para refletir os endpoints e os formatos de resposta atuais.
+- Concluir a página de criação de conta, conforme o escopo definido pelo grupo.
+- Implementar o gerenciamento de lotes.
+- Implementar inscrições, códigos únicos e lista de espera.
+- Implementar check-in e contagem de presença.
+- Desenvolver e integrar o aplicativo mobile em Flutter.
+- Ampliar os testes integrados conforme as novas funcionalidades forem implementadas.
 
 ---
 
