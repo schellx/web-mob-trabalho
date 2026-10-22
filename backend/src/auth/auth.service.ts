@@ -1,8 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { compararSenha } from './senha.util.js';
+import { compararSenha, criarHashSenha } from './senha.util.js';
 import { LoginDto } from './dto/login.dto.js';
+import { RegistroDto } from './dto/registro.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -10,6 +15,43 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
   ) {}
+
+  async registrar(registroDto: RegistroDto) {
+    const nome = registroDto.nome.trim();
+    const email = registroDto.email.trim().toLowerCase();
+
+    const usuarioExistente = await this.prisma.usuario.findUnique({
+      where: { email },
+    });
+
+    if (usuarioExistente) {
+      throw new ConflictException(
+        'Já existe uma conta com esse e-mail.',
+      );
+    }
+
+    const senhaHash = await criarHashSenha(registroDto.senha);
+
+    const usuario = await this.prisma.usuario.create({
+      data: {
+        nome,
+        email,
+        senhaHash,
+        tipo: 'ORGANIZADOR',
+      },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        tipo: true,
+      },
+    });
+
+    return {
+      mensagem: 'Conta criada com sucesso.',
+      usuario,
+    };
+  }
 
   async login(loginDto: LoginDto) {
     if (!loginDto.email || !loginDto.senha) {

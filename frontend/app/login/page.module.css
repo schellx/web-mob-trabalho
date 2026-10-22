@@ -4,16 +4,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f5f5f5;
+  background: var(--background);
 }
 
 .cartao {
   width: 100%;
   max-width: 430px;
   padding: 32px;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
 }
 
 .subtitulo {
@@ -27,12 +29,12 @@
 .cartao h2 {
   margin: 0 0 12px;
   font-size: 28px;
-  color: #222;
+  color: var(--foreground);
 }
 
 .descricao {
   margin-bottom: 26px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -46,19 +48,26 @@
   margin-top: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--foreground);
 }
 
 .formulario input {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--input-border);
   border-radius: 7px;
+  background: var(--input-background);
+  color: var(--foreground);
   font: inherit;
 }
 
+.formulario input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
 .formulario input:focus {
-  outline: 2px solid #5c94aa;
+  outline: 2px solid var(--focus-color);
   outline-offset: 1px;
 }
 
@@ -67,15 +76,15 @@
   padding: 13px;
   border: none;
   border-radius: 7px;
-  background: #222;
-  color: #fff;
+  background: var(--button-background);
+  color: var(--button-foreground);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
 }
 
 .botao:hover {
-  background: #444;
+  opacity: 0.9;
 }
 
 .botao:disabled {
@@ -85,7 +94,34 @@
 
 .erro {
   margin: 8px 0 0;
-  color: #b42318;
+  color: #e5484d;
   font-size: 14px;
   line-height: 1.5;
+}
+
+.rodape {
+  margin: 22px 0 0;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.rodape a {
+  color: #c9080c;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rodape a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .cartao {
+    padding: 24px;
+  }
+
+  .cartao h2 {
+    font-size: 24px;
+  }
 }

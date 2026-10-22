@@ -11,10 +11,17 @@ import {
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
+import { RegistroDto } from './dto/registro.dto.js';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('registro')
+  @HttpCode(HttpStatus.CREATED)
+  registrar(@Body() registroDto: RegistroDto) {
+    return this.authService.registrar(registroDto);
+  }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)

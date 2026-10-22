@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { logoutAction } from './actions/auth';
 import './globals.css';
 import Image from 'next/image';
+import ThemeToggle from './components/ThemeToggle';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -49,13 +50,18 @@ export default async function RootLayout({
               <p>Gestão de eventos e inscrições</p>
             </div>
 
-            {autenticado && (
-              <form action={logoutAction} className="formulario-sair">
-                <button type="submit" className="botao-sair">
-                  Sair
-                </button>
-              </form>
-            )}
+            <div className="acoes-cabecalho">
+                <ThemeToggle />
+
+                {autenticado && (
+                  <form action={logoutAction} className="formulario-sair">
+                    <button type="submit" className="botao-sair">
+                      Sair
+                    </button>
+                  </form>
+                )}
+              </div>
+            
           </div>
         </header>
 

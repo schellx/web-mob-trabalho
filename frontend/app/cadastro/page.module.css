@@ -1,0 +1,137 @@
+.container {
+  min-height: 70vh;
+  padding: 48px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--background);
+}
+
+.cartao {
+  width: 100%;
+  max-width: 430px;
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+}
+
+.subtitulo {
+  margin: 0 0 10px;
+  color: #c9080c;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.cartao h2 {
+  margin: 0 0 12px;
+  font-size: 28px;
+  color: var(--foreground);
+}
+
+.descricao {
+  margin-bottom: 26px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formulario label {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.formulario input,
+.formulario select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--input-border);
+  border-radius: 7px;
+  background: var(--input-background);
+  color: var(--foreground);
+  font: inherit;
+}
+
+.formulario input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.formulario input:focus,
+.formulario select:focus {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 1px;
+}
+
+.botao {
+  margin-top: 14px;
+  padding: 13px;
+  border: none;
+  border-radius: 7px;
+  background: var(--button-background);
+  color: var(--button-foreground);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.botao:hover {
+  opacity: 0.9;
+}
+
+.botao:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.erro,
+.sucesso {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.erro {
+  color: #e5484d;
+}
+
+.sucesso {
+  color: #36a875;
+}
+
+.rodape {
+  margin: 22px 0 0;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.rodape a {
+  color: #c9080c;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rodape a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .cartao {
+    padding: 24px;
+  }
+
+  .cartao h2 {
+    font-size: 24px;
+  }
+}

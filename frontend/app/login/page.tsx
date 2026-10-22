@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import { loginAction } from '../actions/auth';
 import styles from './page.module.css';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [estado, formAction, carregando] = useActionState(
@@ -56,6 +57,9 @@ export default function LoginPage() {
             {carregando ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
+        <p className={styles.rodape}>
+          <Link href="/cadastro">Criar conta</Link>
+        </p>
       </div>
     </section>
   );
