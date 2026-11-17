@@ -1,3 +1,4 @@
+
 import {
   Body,
   Controller,
@@ -29,11 +30,11 @@ interface RequisicaoAutenticada {
 }
 
 @Controller('eventos')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class EventosController {
   constructor(private readonly eventosService: EventosService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ORGANIZADOR')
   create(
     @Req() requisicao: RequisicaoAutenticada,
@@ -46,28 +47,17 @@ export class EventosController {
   }
 
   @Get()
-findAll(@Req() requisicao: RequisicaoAutenticada) {
-  const organizadorId =
-    requisicao.user.tipo === 'ORGANIZADOR'
-      ? requisicao.user.id
-      : undefined;
+  findAll() {
+    return this.eventosService.findAll(undefined);
+  }
 
-  return this.eventosService.findAll(organizadorId);
-}
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.eventosService.findOne(id, undefined);
+  }
 
-@Get(':id')
-findOne(
-  @Param('id', ParseIntPipe) id: number,
-  @Req() requisicao: RequisicaoAutenticada,
-) {
-  const organizadorId =
-    requisicao.user.tipo === 'ORGANIZADOR'
-      ? requisicao.user.id
-      : undefined;
-
-  return this.eventosService.findOne(id, organizadorId);
-}
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ORGANIZADOR')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -82,6 +72,7 @@ findOne(
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ORGANIZADOR')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(
