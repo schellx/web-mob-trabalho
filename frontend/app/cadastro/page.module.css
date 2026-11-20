@@ -5,6 +5,8 @@
   justify-content: center;
   align-items: center;
   background: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .cartao {
@@ -16,6 +18,7 @@
   background: var(--surface);
   color: var(--foreground);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .subtitulo {
@@ -60,6 +63,7 @@
   background: var(--input-background);
   color: var(--foreground);
   font: inherit;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .formulario input::placeholder {
@@ -73,6 +77,11 @@
   outline-offset: 1px;
 }
 
+.formulario select option {
+  background: var(--surface);
+  color: var(--foreground);
+}
+
 .botao {
   margin-top: 14px;
   padding: 13px;
@@ -83,6 +92,7 @@
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+  transition: opacity 0.2s ease;
 }
 
 .botao:hover {

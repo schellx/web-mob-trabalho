@@ -129,10 +129,6 @@ export default function Home() {
         <div className={styles.vazio}>
           <h2>Nenhum evento cadastrado</h2>
           <p>Comece criando seu primeiro evento.</p>
-
-          <Link href="/eventos/novo" className={styles.botaoNovo}>
-            Cadastrar evento
-          </Link>
         </div>
       ) : (
         <section className={styles.lista}>
