@@ -95,7 +95,7 @@ async function obterMensagemErro(
 }
 
 export async function listarEventos(): Promise<ResultadoEventos> {
-  const resultado = await requisitarAutenticado('/eventos');
+    const resultado = await requisitarAutenticado('/eventos/meus');
 
   if ('erro' in resultado) {
     return { erro: resultado.erro };
@@ -201,7 +201,7 @@ export async function excluirEvento(
 export async function buscarEvento(
   id: number
 ): Promise<{ evento?: Evento; erro?: string }> {
-  const resultado = await requisitarAutenticado(`/eventos/${id}`);
+    const resultado = await requisitarAutenticado(`/eventos/meus/${id}`);
 
   if ('erro' in resultado) {
     return { erro: resultado.erro };

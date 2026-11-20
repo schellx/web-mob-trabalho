@@ -110,6 +110,13 @@ export default function DetalhesEvento() {
             >
               Editar evento
             </Link>
+
+            <Link
+              href={`/eventos/${evento.id}/lotes`}
+              className={styles.linkVoltar}
+            >
+                Gerenciar lotes
+            </Link>
           </>
         ) : null}
       </section>

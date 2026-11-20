@@ -46,15 +46,32 @@ export class EventosController {
     );
   }
 
-  @Get()
-  findAll() {
-    return this.eventosService.findAll(undefined);
-  }
+@Get('meus')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ORGANIZADOR')
+findMeus(@Req() requisicao: RequisicaoAutenticada) {
+  return this.eventosService.findAll(requisicao.user.id);
+}
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.eventosService.findOne(id, undefined);
-  }
+@Get('meus/:id')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ORGANIZADOR')
+findMeuEvento(
+  @Param('id', ParseIntPipe) id: number,
+  @Req() requisicao: RequisicaoAutenticada,
+) {
+  return this.eventosService.findOne(id, requisicao.user.id);
+}
+
+@Get()
+findAll() {
+  return this.eventosService.findAll(undefined);
+}
+
+@Get(':id')
+findOne(@Param('id', ParseIntPipe) id: number) {
+  return this.eventosService.findOne(id, undefined);
+}
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)

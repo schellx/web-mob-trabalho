@@ -1,13 +1,20 @@
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/evento.dart';
 
 class EventoService {
-  // Endereço do backend visto pelo emulador Android
-  static const String baseUrl = 'http://10.0.2.2:3000';
+  // Endereço do backend conforme o dispositivo
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:3000';
+    }
+
+    return 'http://10.0.2.2:3000';
+  }
 
   Future<List<Evento>> buscarEventos() async {
     final resposta = await http.get(

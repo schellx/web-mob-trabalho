@@ -351,8 +351,27 @@ class TelaPerfil extends StatelessWidget {
 }
 
 // Tela de seleção de eventos do recepcionista
-class TelaSelecaoEvento extends StatelessWidget {
+
+class TelaSelecaoEvento extends StatefulWidget {
   const TelaSelecaoEvento({super.key});
+
+  @override
+  State<TelaSelecaoEvento> createState() =>
+      _TelaSelecaoEventoState();
+}
+
+class _TelaSelecaoEventoState extends State<TelaSelecaoEvento> {
+  late Future<List<Evento>> futureEventos;
+
+  @override
+  void initState() {
+    super.initState();
+    carregarEventos();
+  }
+
+  void carregarEventos() {
+    futureEventos = EventoService().buscarEventos();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -360,60 +379,95 @@ class TelaSelecaoEvento extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Selecionar evento'),
         backgroundColor: Colors.white,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          const Text(
-            'Eventos disponíveis',
-            style: TextStyle(
-              fontSize: 23,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          const Text(
-            'Selecione o evento para acessar o painel de check-in.',
-            style: TextStyle(color: Colors.grey),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Evento temporário para testar a navegação
-          Card(
-            color: Colors.white,
-            elevation: 2,
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              leading: const Icon(
-                Icons.event,
-                size: 35,
-                color: azul,
-              ),
-              title: const Text(
-                'Evento de demonstração',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: const Text(
-                'Evento temporário para testar o aplicativo.',
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                    const TelaEventoRecepcionista(
-                      nomeEvento: 'Evento de demonstração',
-                    ),
-                  ),
-                );
-              },
-            ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              setState(() {
+                carregarEventos();
+              });
+            },
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Atualizar eventos',
           ),
         ],
+      ),
+      body: FutureBuilder<List<Evento>>(
+        future: futureEventos,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Não foi possível carregar os eventos.'),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        carregarEventos();
+                      });
+                    },
+                    child: const Text('Tentar novamente'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final eventos = snapshot.data ?? [];
+
+          if (eventos.isEmpty) {
+            return const Center(
+              child: Text('Nenhum evento encontrado.'),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: eventos.length,
+            itemBuilder: (context, index) {
+              final evento = eventos[index];
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 14),
+                child: ListTile(
+                  leading: const Icon(
+                    Icons.event,
+                    color: azul,
+                    size: 32,
+                  ),
+                  title: Text(
+                    evento.nome,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '${evento.local}\nData: ${evento.dataFormatada}',
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            TelaEventoRecepcionista(
+                          nomeEvento: evento.nome,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
