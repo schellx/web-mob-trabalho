@@ -1,8 +1,9 @@
 .container {
   min-height: 100vh;
   padding: 50px 20px;
-  background-color: #f5f5f5;
-  color: #222;
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .formulario {
@@ -10,14 +11,17 @@
   max-width: 600px;
   margin: 0 auto;
   padding: 35px;
-  background-color: white;
+  background-color: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .subtitulo {
   margin: 0 0 10px;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.5px;
@@ -26,11 +30,12 @@
 .formulario h1 {
   margin: 0 0 10px;
   font-size: 32px;
+  color: var(--foreground);
 }
 
 .descricao {
   margin-bottom: 30px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -44,21 +49,32 @@
   margin-top: 10px;
   font-size: 14px;
   font-weight: 600;
+  color: var(--foreground);
 }
 
 .formulario input,
 .formulario textarea {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--input-border);
   border-radius: 8px;
+  background-color: var(--input-background);
+  color: var(--foreground);
   font: inherit;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.formulario input::placeholder,
+.formulario textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.8;
 }
 
 .formulario input:focus,
 .formulario textarea:focus {
-  border-color: #333;
-  outline: 2px solid rgba(0, 0, 0, 0.08);
+  border-color: var(--focus-color);
+  outline: 2px solid var(--focus-color);
+  outline-offset: 1px;
 }
 
 .formulario textarea {
@@ -70,15 +86,16 @@
   padding: 14px;
   border: none;
   border-radius: 8px;
-  background-color: #222;
-  color: white;
+  background-color: var(--button-background);
+  color: var(--button-foreground);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  transition: opacity 0.2s ease;
 }
 
 .formulario button:hover {
-  background-color: #444;
+  opacity: 0.85;
 }
 
 .formulario button:disabled {
@@ -88,7 +105,26 @@
 
 .mensagem {
   margin-top: 12px;
-  color: #333;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.linkVoltar {
+  display: inline-block;
+  margin-bottom: 24px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.linkVoltar:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+}
+
+.erro {
+  color: #e5484d;
   font-size: 14px;
   line-height: 1.5;
 }
@@ -105,22 +141,4 @@
   .formulario h1 {
     font-size: 27px;
   }
-}
-
-.linkVoltar {
-  display: inline-block;
-  margin-bottom: 24px;
-  color: #444;
-  font-size: 14px;
-  text-decoration: none;
-}
-
-.linkVoltar:hover {
-  text-decoration: underline;
-}
-
-.erro {
-  color: #b42318;
-  font-size: 14px;
-  line-height: 1.5;
 }
