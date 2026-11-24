@@ -1,13 +1,80 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { CreateUsuarioDto } from './dto/create-usuario.dto.js';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { criarHashSenha } from '../auth/senha.util.js';
+import { CreateParticipanteDto } from './dto/create-participante.dto.js';
+import { CreateRecepcionistaDto } from './dto/create-recepcionista.dto.js';
 
 @Injectable()
 export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
 
+async createParticipante(dto: CreateParticipanteDto) {
+  const nome = dto.nome.trim();
+  const email = dto.email.trim().toLowerCase();
+
+  const usuarioExistente = await this.prisma.usuario.findUnique({
+    where: { email },
+  });
+
+  if (usuarioExistente) {
+    throw new ConflictException(
+      'Já existe uma conta com esse e-mail.',
+    );
+  }
+
+  const senhaHash = await criarHashSenha(dto.senha);
+
+  return this.prisma.usuario.create({
+    data: {
+      nome,
+      email,
+      senhaHash,
+      tipo: 'PARTICIPANTE',
+    },
+    select: {
+      id: true,
+      nome: true,
+      email: true,
+      tipo: true,
+      criadoEm: true,
+    },
+  });
+}
+
+async createRecepcionista(dto: CreateRecepcionistaDto) {
+  const nome = dto.nome.trim();
+  const email = dto.email.trim().toLowerCase();
+
+  const usuarioExistente = await this.prisma.usuario.findUnique({
+    where: { email },
+  });
+
+  if (usuarioExistente) {
+    throw new ConflictException(
+      'Já existe uma conta com esse e-mail.',
+    );
+  }
+
+  const senhaHash = await criarHashSenha(dto.senha);
+
+  return this.prisma.usuario.create({
+    data: {
+      nome,
+      email,
+      senhaHash,
+      tipo: 'RECEPCIONISTA',
+    },
+    select: {
+      id: true,
+      nome: true,
+      email: true,
+      tipo: true,
+      criadoEm: true,
+    },
+  });
+}
   async create(createUsuarioDto: CreateUsuarioDto) {
     const senhaHash = await criarHashSenha(createUsuarioDto.senha);
 
@@ -51,4 +118,20 @@ export class UsuariosService {
   remove(id: number) {
     return `This action removes a #${id} usuario`;
   }
+
+findParticipantes() {
+  return this.prisma.usuario.findMany({
+    where: {
+      tipo: 'PARTICIPANTE',
+    },
+    select: {
+      id: true,
+      nome: true,
+      email: true,
+    },
+    orderBy: {
+      nome: 'asc',
+    },
+  });
+}
 }

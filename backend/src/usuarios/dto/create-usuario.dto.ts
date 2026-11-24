@@ -1,6 +1,23 @@
+import {
+  IsEmail,
+  IsIn,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+} from 'class-validator';
+
 export class CreateUsuarioDto {
-  nome: string;
-  email: string;
-  senha: string;
-  tipo: 'ORGANIZADOR' | 'RECEPCIONISTA' | 'PARTICIPANTE';
+  @IsString()
+  @IsNotEmpty()
+  nome!: string;
+
+  @IsEmail()
+  email!: string;
+
+  @IsString()
+  @MinLength(6)
+  senha!: string;
+
+  @IsIn(['ORGANIZADOR', 'RECEPCIONISTA', 'PARTICIPANTE'])
+  tipo!: 'ORGANIZADOR' | 'RECEPCIONISTA' | 'PARTICIPANTE';
 }

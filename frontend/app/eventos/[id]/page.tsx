@@ -117,6 +117,25 @@ export default function DetalhesEvento() {
             >
                 Gerenciar lotes
             </Link>
+
+            <Link
+              href={`/eventos/${evento.id}/inscricoes`}
+              className={styles.linkVoltar}
+            >
+              Gerenciar inscrições
+            </Link>
+            <Link
+              href="/recepcionistas"
+              className={styles.linkVoltar}
+            >
+              Gerenciar recepcionistas
+            </Link>
+            <Link
+              href={`/eventos/${evento.id}/relatorio`}
+              className={styles.linkVoltar}
+            >
+              Relatório de comparecimento
+            </Link>
           </>
         ) : null}
       </section>
