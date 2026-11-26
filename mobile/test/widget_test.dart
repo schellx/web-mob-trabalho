@@ -1,30 +1,51 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart';
 
 import 'package:mobile/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('deve exibir a tela inicial do Eventoon', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const AplicativoEventos());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Bem-vindo ao aplicativo!'), findsOneWidget);
+    expect(find.text('Como deseja acessar?'), findsOneWidget);
+    expect(find.text('Participante'), findsOneWidget);
+    expect(find.text('Recepcionista'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('deve permitir entrar como participante', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const AplicativoEventos());
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('Participante'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Login - Participante'), findsOneWidget);
+
+    await tester.tap(find.text('Entrar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Olá, participante!'), findsOneWidget);
+    expect(find.text('Buscar eventos'), findsOneWidget);
+    expect(find.text('Ver ingressos'), findsOneWidget);
+  });
+
+  testWidgets('deve permitir entrar como recepcionista', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const AplicativoEventos());
+
+    await tester.tap(find.text('Recepcionista'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Login - Recepcionista'), findsOneWidget);
+
+    await tester.tap(find.text('Entrar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Olá, recepcionista!'), findsOneWidget);
+    expect(find.text('Selecionar evento'), findsOneWidget);
   });
 }

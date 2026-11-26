@@ -1,6 +1,8 @@
+
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
   ParseIntPipe,
@@ -31,6 +33,18 @@ export class InscricoesController {
     private readonly inscricoesService: InscricoesService,
   ) {}
 
+  // Permite as rotas demonstrativas somente em desenvolvimento.
+  private verificarDemo() {
+    if (
+      process.env.MOBILE_DEMO !== 'true' ||
+      process.env.NODE_ENV !== 'development'
+    ) {
+      throw new ForbiddenException(
+        'A demonstração do mobile não está habilitada.',
+      );
+    }
+  }
+
   // Participante consulta suas próprias inscrições.
   @Get('minhas')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -38,6 +52,30 @@ export class InscricoesController {
   findMinhas(@Req() requisicao: RequisicaoAutenticada) {
     return this.inscricoesService.findMinhas(
       requisicao.user.id,
+    );
+  }
+
+  // Participante de demonstração consulta seus ingressos.
+  @Get('demo/participante')
+  findIngressosDemo() {
+    this.verificarDemo();
+
+    return this.inscricoesService.findMinhas(4);
+  }
+
+  // Recepcionista de demonstração consulta inscrições de um evento.
+  @Get('demo/evento/:eventoId')
+  findInscricoesDemo(
+    @Param('eventoId', ParseIntPipe) eventoId: number,
+    @Query('busca') busca?: string,
+  ) {
+    this.verificarDemo();
+
+    return this.inscricoesService.findAll(
+      eventoId,
+      9,
+      'RECEPCIONISTA',
+      busca,
     );
   }
 

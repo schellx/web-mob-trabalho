@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -17,12 +16,12 @@ class EventoService {
   }
 
   Future<List<Evento>> buscarEventos() async {
-    final resposta = await http.get(
-      Uri.parse('$baseUrl/eventos'),
-      headers: {
-        'Accept': 'application/json',
-      },
-    ).timeout(const Duration(seconds: 15));
+    final resposta = await http
+        .get(
+          Uri.parse('$baseUrl/eventos'),
+          headers: {'Accept': 'application/json'},
+        )
+        .timeout(const Duration(seconds: 15));
 
     if (resposta.statusCode == 200) {
       final List<dynamic> dados = jsonDecode(resposta.body);
@@ -32,8 +31,6 @@ class EventoService {
       }).toList();
     }
 
-    throw Exception(
-      'Erro ao buscar eventos: HTTP ${resposta.statusCode}',
-    );
+    throw Exception('Erro ao buscar eventos: HTTP ${resposta.statusCode}');
   }
 }
