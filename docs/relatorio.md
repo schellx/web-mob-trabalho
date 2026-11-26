@@ -432,7 +432,7 @@ Atualizaríamos o `contrato-api.md` imediatamente a cada novo módulo finalizado
 
 **Nota:** 8,5/10
 
-**Justificativa:**  A entrega contém API NestJS/Prisma, web administrativo e mobile demonstrativo integrado por HTTP. Há testes automatizados de serviços, widget e rota raiz; faltam testes E2E completos e comprovação da execução/percentual de cobertura. Autoinscrição e leitura/geração real de QR Code não foram concluídas, e a documentação anterior ficou defasada durante o desenvolvimento. A dispensa de JWT real no mobile é orientação docente, não uma falha do requisito.
+**Justificativa:**  A entrega contém API NestJS/Prisma, web administrativo e mobile demonstrativo integrado por HTTP. Há testes automatizados de serviços, widget e rota raiz; faltam testes E2E completos e comprovação da execução/percentual de cobertura. A documentação não foi atualizada em todas as fases do desenvolvimento, fazendo atualizações maiores em um intervalo maior de tempo invés de menores contínuas, e existem alguns bugs pequenos no web, como opções muito juntas e dark mode em uma pagina. A dispensa de JWT real no mobile é orientação docente, não uma falha do requisito.
 
 ---
 
