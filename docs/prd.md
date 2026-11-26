@@ -1,6 +1,8 @@
+# PRD — Eventoon
+
 ## 1. Objetivo do produto
 
-O sistema permitirá o gerenciamento de eventos, lotes, vagas e inscrições, além do controle de presença dos participantes. O organizador utilizará o cliente web para administrar eventos, lotes, inscrições e acompanhar o comparecimento. A recepção utilizará o aplicativo mobile para localizar participantes e registrar o check-in, enquanto o participante poderá consultar sua inscrição e seu código de identificação.
+O sistema permite o gerenciamento de eventos, lotes, vagas e inscrições, além do controle de presença dos participantes. O organizador utiliza o cliente web para administrar eventos, lotes, inscrições e acompanhar o comparecimento. A recepção utiliza o aplicativo mobile para buscar inscrições por nome ou código e registrar o check-in, enquanto o participante consulta eventos e exibe o código textual do ingresso cadastrado pelo organizador.
 
 ---
 
@@ -18,15 +20,15 @@ O sistema permitirá o gerenciamento de eventos, lotes, vagas e inscrições, al
 
 - **Contexto:** Carlos atua na recepção de um evento e precisa atender vários participantes durante o período de entrada.
 - **Cliente principal:** mobile
-- **Objetivo principal no sistema:** Localizar rapidamente a inscrição de um participante e registrar seu check-in.
+- **Objetivo principal no sistema:** Localizar rapidamente a inscrição de um participante por nome ou código e registrar seu check-in.
 - **Maior frustração atual (sem o sistema):** Demorar para localizar a inscrição ou registrar incorretamente a entrada de um participante.
-- **Critério de sucesso:** Encontrar a inscrição por nome ou código e registrar o check-in de forma rápida e correta.
+- **Critério de sucesso:** Validar a inscrição por busca e registrar o check-in de forma rápida e correta.
 
 ### Persona 3 — Júlia, 22 anos, participante
 
-- **Contexto:** Júlia está inscrita em um evento e utiliza seu celular para consultar sua inscrição e apresentar seu código durante o credenciamento.
+- **Contexto:** Júlia busca eventos de seu interesse e utiliza seu celular para apresentar seu código durante o credenciamento.
 - **Cliente principal:** mobile
-- **Objetivo principal no sistema:** Consultar sua inscrição e seu código de identificação.
+- **Objetivo principal no sistema:** Consultar eventos e apresentar o código do ingresso previamente cadastrado.
 - **Maior frustração atual (sem o sistema):** Ter dificuldade para localizar as informações necessárias para sua entrada no evento.
 - **Critério de sucesso:** Acessar rapidamente sua inscrição e apresentar seu código no momento do credenciamento.
 
@@ -38,10 +40,9 @@ O sistema permitirá o gerenciamento de eventos, lotes, vagas e inscrições, al
 
 | ID | Descrição | Prioridade | Persona | Cliente |
 |---|---|---|---|---|
-| RF-001 | O usuário entra no sistema informando e-mail e senha e recebe acesso às funcionalidades permitidas para seu perfil. | Alta | todas | web / mobile |
-| RF-002 | O usuário encerra a sessão e deixa de ter acesso às funcionalidades protegidas. | Alta | todas | web / mobile |
-
-Os usuários serão previamente cadastrados pelo sistema. Não haverá auto-cadastro no MVP.
+| RF-001 | O usuário entra no sistema informando e-mail e senha e recebe acesso às funcionalidades permitidas para seu perfil (no mobile, acesso simulado por escolha de perfil). | Alta | todas | web / mobile |
+| RF-002 | O usuário encerra a sessão web e deixa de ter acesso às funcionalidades protegidas; no mobile, retorna à seleção de perfil sem sessão real. | Alta | todas | web / mobile |
+| RF-003 | O usuário pode criar uma nova conta informando nome, e-mail e senha. | Média | organizador | web |
 
 ### 3.2 Gerenciamento de eventos e lotes
 
@@ -53,6 +54,7 @@ Os usuários serão previamente cadastrados pelo sistema. Não haverá auto-cada
 | RF-013 | O organizador pode cadastrar um lote vinculado a um evento, informando nome, quantidade de vagas e período de validade. | Alta | organizador | web |
 | RF-014 | O organizador pode consultar os lotes vinculados a um evento. | Alta | organizador | web |
 | RF-015 | O organizador pode atualizar os dados de um lote. | Média | organizador | web |
+| RF-016 | O organizador pode excluir evento sem lotes ou inscrições vinculados. | Média | organizador | web |
 
 ### 3.3 Inscrições e lista de espera
 
@@ -60,15 +62,16 @@ Os usuários serão previamente cadastrados pelo sistema. Não haverá auto-cada
 |---|---|---|---|---|
 | RF-020 | O organizador pode cadastrar uma inscrição de participante vinculada a um evento e a um lote. | Alta | organizador | web |
 | RF-021 | O sistema gera automaticamente um código único para cada inscrição. | Alta | organizador / participante | web / mobile |
-|| RF-022 | Quando não houver vaga disponível no lote, uma nova inscrição poderá receber o status `LISTA_ESPERA`. | Alta | organizador | web |
+| RF-022 | Quando não houver vaga disponível no lote, uma nova inscrição recebe o status `LISTA_ESPERA`. | Alta | organizador | web |
 | RF-023 | O organizador pode consultar as inscrições de um evento e sua situação. | Alta | organizador | web |
-| RF-024 | O participante pode consultar sua própria inscrição e seu código de identificação. | Alta | participante | mobile |
+| RF-024 | O participante de demonstração pode consultar eventos e ingressos vinculados ao ID fixo 4 e exibir o código do ingresso. | Alta | participante | mobile |
+| RF-025 | O organizador pode cadastrar participantes e recepcionistas. | Alta | organizador | web |
 
 ### 3.4 Credenciamento e check-in
 
 | ID | Descrição | Prioridade | Persona | Cliente |
 |---|---|---|---|---|
-| RF-030 | A recepção pode buscar uma inscrição pelo nome do participante ou pelo código único. | Alta | recepcionista | mobile |
+| RF-030 | A recepção pode localizar uma inscrição por busca textual (nome/código). | Alta | recepcionista | mobile |
 | RF-031 | A recepção pode registrar o check-in de uma inscrição válida. | Alta | recepcionista | mobile |
 | RF-032 | O sistema impede que uma mesma inscrição tenha mais de um check-in. | Alta | recepcionista | mobile |
 | RF-033 | O sistema permite consultar a quantidade de participantes que realizaram check-in em um evento. | Alta | organizador / recepcionista | web / mobile |
@@ -81,14 +84,14 @@ Os usuários serão previamente cadastrados pelo sistema. Não haverá auto-cada
 | ID | Categoria | Descrição | Critério de aceitação |
 |---|---|---|---|
 | RNF-001 | Segurança — credenciais | Senhas são armazenadas com hash e nunca em texto puro. | Nenhuma senha legível é armazenada no banco de dados. |
-| RNF-002 | Segurança — sessão | O acesso é feito por token JWT com validade definida. | Token expirado é recusado com `401`. |
+| RNF-002 | Segurança — sessão | O acesso às rotas protegidas da API é feito por token JWT com validade de uma hora; rotas públicas e demo são exceções explícitas. | Token expirado é recusado com `401`. |
 | RNF-003 | Segurança — rotas | Toda rota protegida exige token válido e respeita o perfil do usuário. | Requisição sem token recebe `401` e perfil sem permissão recebe `403`. |
 | RNF-004 | Segurança — segredos | Chaves e credenciais ficam em variáveis de ambiente. | Nenhuma credencial real é versionada no repositório. |
-| RNF-005 | Desempenho | A busca de inscrições e o registro de check-in devem responder rapidamente durante o credenciamento. | As operações principais devem apresentar resposta adequada ao uso durante o fluxo de entrada do evento. |
-| RNF-006 | Usabilidade | As operações principais devem ser simples e apresentar mensagens claras de sucesso e erro. | A recepção consegue localizar uma inscrição e registrar seu check-in com poucos passos. |
+| RNF-005 | Desempenho | A busca de inscrições e o registro de check-in devem responder rapidamente durante o credenciamento. | Meta de resposta adequada no credenciamento; sem medição de desempenho comprovada no ZIP. |
+| RNF-006 | Usabilidade | As operações principais devem ser simples e apresentar mensagens claras de sucesso e erro. | A recepção consegue selecionar o evento, buscar o participante e registrar o check-in com poucos passos. |
 | RNF-007 | Manutenibilidade | As regras de negócio ficam no backend e o acesso aos dados é realizado pelo Prisma. | Os clientes não acessam diretamente o PostgreSQL e as regras de negócio não são duplicadas nos clientes. |
-| RNF-008 | Comportamento em rede instável (mobile) | O aplicativo deve informar falhas de comunicação e não considerar um check-in concluído sem confirmação da API. | Em caso de falha de rede, o aplicativo informa o erro e permite nova tentativa sem criar check-ins duplicados. |
-| RNF-009 | Consistência | Os dados apresentados pelos clientes devem corresponder aos dados armazenados pela API. | Um check-in realizado pelo mobile aparece nas consultas de comparecimento realizadas pelo web. |
+| RNF-008 | Comportamento em rede instável (mobile) | O aplicativo informa falhas de comunicação e não considera um check-in concluído sem confirmação HTTP 200; timeout de 15 segundos. | Em caso de falha de rede, o aplicativo informa o erro e permite nova tentativa sem criar check-ins duplicados. |
+| RNF-009 | Consistência | Os dados apresentados pelos clientes correspondem aos dados armazenados pela API. | Eventos e inscrições criados no web e operações realizadas no mobile refletem o mesmo estado no backend. |
 
 ---
 
@@ -97,24 +100,26 @@ Os usuários serão previamente cadastrados pelo sistema. Não haverá auto-cada
 | ID | Regra | Validação antecipada no cliente? |
 |---|---|---|
 | RN-001 | Cada lote pertence a um único evento e possui uma quantidade definida de vagas. | sim |
-| RN-002 | A quantidade de inscrições confirmadas de um lote não pode ultrapassar a quantidade de vagas disponível. | sim |
-| RN-003 | Quando não houver vaga disponível no lote, uma nova inscrição poderá receber o status `LISTA_ESPERA`. | sim |
+| RN-002 | A quantidade de inscrições ativas de um lote não pode ultrapassar a quantidade de vagas disponível. | sim |
+| RN-003 | Quando não houver vaga disponível no lote, uma nova inscrição recebe o status `LISTA_ESPERA`. | sim |
 | RN-004 | Cada inscrição recebe um código único gerado pelo servidor. | não |
 | RN-005 | Uma inscrição com status `LISTA_ESPERA` ou `CANCELADA` não pode realizar check-in. | sim |
 | RN-006 | Uma inscrição pode possuir no máximo um check-in. | não |
 | RN-007 | O check-in só pode ser registrado para uma inscrição existente e válida para entrada. | sim |
 | RN-008 | Repetir o check-in da mesma inscrição não cria um segundo registro nem altera novamente a quantidade de participantes presentes. | não |
-| RN-009 | A quantidade de participantes presentes é calculada a partir das inscrições que possuem check-in registrado. | não |
-| RN-010 | O código da inscrição é gerado pelo servidor e não pode ser definido pelo cliente. | não |
+| RN-009 | A quantidade de participantes presentes é calculada a partir das inscrições ATIVAS que possuem check-in registrado. | não |
+| RN-010 | O código da inscrição é gerado pelo servidor e não pode ser definido pelo cliente; o DTO rejeita campos extras. | não |
+| RN-011 | Um evento com lotes ou inscrições vinculados não pode ser excluído (retorna `409 Conflict`). | não |
+| RN-012 | A inscrição deve estar dentro do período do lote, e a capacidade do lote não pode ser reduzida abaixo do número de inscrições ativas. | parcialmente |
 
 ### Autorização — quem pode o quê
 
 | ID | Regra de autorização | Perfil |
 |---|---|---|
-| RN-A01 | Pode cadastrar, consultar e atualizar eventos e lotes. | ORGANIZADOR |
-| RN-A02 | Pode consultar inscrições e informações de comparecimento dos eventos que administra. | ORGANIZADOR |
-| RN-A03 | Pode buscar inscrições e registrar check-ins. | RECEPCIONISTA |
-| RN-A04 | Pode consultar a própria inscrição e o próprio código de identificação. | PARTICIPANTE |
+| RN-A01 | Pode cadastrar, consultar, editar e excluir seus próprios eventos e gerenciar seus lotes. | ORGANIZADOR |
+| RN-A02 | Pode cadastrar participantes/recepcionistas, gerenciar inscrições e consultar comparecimento dos eventos que administra. | ORGANIZADOR |
+| RN-A03 | Pode buscar inscrições, registrar check-ins e consultar a contagem de presença. | RECEPCIONISTA |
+| RN-A04 | Pode consultar eventos disponíveis e visualizar sua própria inscrição e código do ingresso. | PARTICIPANTE |
 | RN-A05 | Não pode alterar eventos, lotes ou inscrições administrativas. | PARTICIPANTE |
 | RN-A06 | Não pode acessar funcionalidades administrativas de organizador. | RECEPCIONISTA / PARTICIPANTE |
 
@@ -131,7 +136,8 @@ erDiagram
         int id PK
         string nome
         string email UK
-        string tipo
+        string senhaHash
+        TipoUsuario tipo
         datetime criadoEm
     }
 
@@ -157,7 +163,7 @@ erDiagram
     INSCRICAO {
         int id PK
         string codigo UK
-        string status
+        StatusInscricao status
         datetime criadoEm
         int participanteId FK
         int eventoId FK
@@ -184,13 +190,13 @@ erDiagram
 
 | Entidade | Responsabilidade | Principais atributos |
 |---|---|---|
-| **Usuario** | Representa os usuários do sistema e seus perfis de acesso. | `id`, `nome`, `email`, `tipo`, `criadoEm` |
+| **Usuario** | Representa os usuários do sistema e seus perfis de acesso (`ORGANIZADOR`, `RECEPCIONISTA`, `PARTICIPANTE`). | `id`, `nome`, `email`, `senhaHash`, `tipo`, `criadoEm` |
 | **Evento** | Representa um evento administrado por um organizador. | `id`, `nome`, `descricao`, `local`, `data`, `organizadorId`, `criadoEm` |
 | **Lote** | Representa uma divisão das vagas disponíveis de um evento. | `id`, `nome`, `quantidade`, `inicio`, `fim`, `eventoId` |
-| **Inscricao** | Representa a inscrição de um participante em um evento e em um lote. | `id`, `codigo`, `status`, `criadoEm`, `participanteId`, `eventoId`, `loteId` |
+| **Inscricao** | Representa a inscrição de um participante em um evento e em um lote (`ATIVA`, `CANCELADA`, `LISTA_ESPERA`). | `id`, `codigo`, `status`, `criadoEm`, `participanteId`, `eventoId`, `loteId` |
 | **CheckIn** | Representa o registro da entrada de um participante no evento. | `id`, `realizadoEm`, `inscricaoId`, `recepcionistaId` |
 
-A lista de espera será representada pelo campo `status` da entidade `Inscricao`, utilizando o valor `LISTA_ESPERA`, não sendo necessária uma entidade separada no MVP.
+A lista de espera é representada pelo campo `status` da entidade `Inscricao`, utilizando o valor `LISTA_ESPERA`, não sendo necessária uma entidade separada no MVP.
 
 ---
 
@@ -198,29 +204,25 @@ A lista de espera será representada pelo campo `status` da entidade `Inscricao`
 
 | Funcionalidade | Web | Mobile | Justificativa |
 |---|---|---|---|
-| Gerenciamento de eventos | ✅ | — | O organizador precisa cadastrar, consultar e atualizar informações do evento em uma interface administrativa. |
-| Gerenciamento de lotes e vagas | ✅ | — | O cadastro e o acompanhamento de lotes e vagas fazem parte do gerenciamento administrativo do evento. |
-| Gerenciamento de inscrições | ✅ | — | O organizador precisa consultar e administrar as inscrições dos eventos. |
-| Lista de espera | ✅ | — | O acompanhamento das inscrições em lista de espera faz parte da administração das vagas do evento. |
-| Busca por nome ou código | — | ✅ | A recepção precisa localizar rapidamente uma inscrição durante o atendimento na entrada do evento. |
-| Registro de check-in | — | ✅ | O check-in será realizado presencialmente pela recepção durante o credenciamento. |
-| Contagem de participantes presentes | ✅ | ✅ | O organizador precisa acompanhar o comparecimento e a recepção pode consultar a quantidade durante o credenciamento. |
-| Consulta do próprio ingresso | — | ✅ | O participante utilizará o celular para consultar sua inscrição e apresentar seu código. |
-| Contagem de presentes | ✅ | — | O relatório é uma funcionalidade administrativa destinada ao acompanhamento do evento pelo organizador. |
+| Login e cadastro de conta | ✅ | Login simulado, sem cadastro | O organizador autentica-se com JWT no web; no mobile, o acesso utiliza login simulado (escolha entre participante e recepcionista), conforme orientação da disciplina. |
+| Visualização de eventos | ✅ | ✅ | Organizadores gerenciam seus eventos no web; participantes buscam eventos no mobile. |
+| Cadastro e edição de eventos | ✅ | — | Atividades administrativas mais adequadas à tela grande. |
+| Gerenciamento de lotes e vagas | ✅ | — | Parte da configuração administrativa do evento. |
+| Gerenciamento de inscrições e lista de espera | ✅ | — | O organizador administra inscrições e vagas pelo painel web. |
+| Criação de inscrição e exibição do código do ingresso | Criação | Consulta | O organizador cria a inscrição; o participante consulta o código textual do ingresso existente. |
+| Busca por nome/código e registro de check-in | — | ✅ | Operação presencial na entrada do evento. QR real não implementado. |
+| Contagem de participantes presentes | ✅ | ✅ | Organizador acompanha o comparecimento no web e recepção acompanha durante o credenciamento. |
 
 **O que ficou de fora do mobile e por quê:**
-
-O gerenciamento de eventos, lotes, vagas, inscrições, lista de espera e relatórios ficará fora do mobile porque essas funcionalidades pertencem ao contexto administrativo do organizador. O aplicativo mobile será direcionado aos fluxos de recepção e participante durante o credenciamento.
+O gerenciamento de eventos, lotes, vagas, lista de espera e cadastros administrativos ficou fora do mobile por pertencer ao contexto administrativo do organizador.
 
 **O que ficou de fora do web e por quê:**
+O registro presencial de check-in ficou no mobile por oferecer mobilidade na entrada do evento. A leitura real de QR Code não foi concluída em nenhum cliente.
 
-O registro de check-in e a busca rápida de participantes não serão fluxos principais do web porque essas operações acontecem presencialmente na entrada do evento, em um contexto de mobilidade.
-
-**Recorte mobile mínimo (1 a 3 casos de uso, com leitura e escrita na API):**
-
-- Buscar uma inscrição por nome ou código e visualizar seus dados.
-- Registrar o check-in de uma inscrição válida.
-- Consultar a quantidade de participantes presentes no evento.
+**Recorte mobile entregue:**
+- Login simulado com seleção de perfil (Participante ou Recepcionista).
+- Fluxo Participante: consultar eventos, detalhes e ingressos cadastrados, com código textual.
+- Fluxo Recepcionista: selecionar evento, buscar inscrições por nome/código, registrar check-in e consultar contagem.
 
 ---
 
@@ -230,9 +232,9 @@ O registro de check-in e a busca rápida de participantes não serão fluxos pri
 
 ```mermaid
 flowchart TD
-  W["Cliente web — Next.js 15 (App Router)<br/>Server e Client Components"]
-  M["App mobile — Flutter 3<br/>Screens, Widgets e camada de serviço"]
-  A["API REST — NestJS 11<br/>Controller · Service · Prisma"]
+  W["Cliente web — Next.js 16.3.8 (App Router)<br/>Server e Client Components"]
+  M["App mobile — Flutter ≥ 3.47 (Dart ≥ 3.14 e < 4.0)<br/>Screens, Widgets e camada de serviço"]
+  A["API REST — NestJS 12<br/>Controller · Service · Prisma"]
   D["PostgreSQL 18"]
 
   W -->|HTTP / JSON| A
@@ -242,95 +244,105 @@ flowchart TD
 
 ### 8.2 Estrutura dos três projetos
 
-| Componente | Desvio em relação ao README | Motivo |
+| Componente | Desvio em relação à documentação anterior | Motivo |
 |---|---|---|
-| Backend | nenhum | Será utilizada a estrutura de backend prevista para o projeto. |
-| Cliente web | nenhum | Será utilizado o Next.js com App Router conforme definido no projeto. |
-| App mobile | nenhum | Será utilizada a estrutura prevista para o aplicativo Flutter. |
+| Backend | nenhum | Utiliza a estrutura modular padrão do NestJS prevista no projeto. |
+| Cliente web | Pasta `frontend/` e Next.js 16.3.8 | `web/` contém apenas arquivos estáticos Flutter; o Next.js utiliza App Router em `frontend/`. |
+| App mobile | Versão mínima de SDK corrigida | Flutter >=3.47 e Dart >=3.14 conforme lockfile. |
 
 ### 8.3 Módulos e recursos do backend
 
-| Módulo | Recurso do domínio | Endpoints previstos |
+| Módulo | Recurso do domínio | Endpoints implementados |
 |---|---|---|
-| `AuthModule` | Autenticação | `POST /auth/login` |
-| `EventosModule` | Eventos | `GET /eventos`, `GET /eventos/:id`, `POST /eventos`, `PATCH /eventos/:id` |
-| `LotesModule` | Lotes | `GET /eventos/:eventoId/lotes`, `POST /eventos/:eventoId/lotes`, `PATCH /lotes/:id` |
-| `InscricoesModule` | Inscrições | `GET /inscricoes`, `GET /inscricoes/:id`, `POST /inscricoes` |
-| `CheckinsModule` | Check-in e comparecimento | `GET /inscricoes?busca=`, `POST /inscricoes/:id/checkin`, `GET /eventos/:eventoId/contagem` |
+| `AuthModule` | Autenticação | `POST /auth/registro`, `POST /auth/login`, `GET /auth/perfil` |
+| `UsuariosModule` | Usuários | `POST /usuarios/participantes`, `GET /usuarios/participantes`, `POST /usuarios/recepcionistas`, `GET /usuarios` (público), rotas por ID são scaffolds sem CRUD funcional |
+| `EventosModule` | Eventos | `POST /eventos`, `GET /eventos/meus`, `GET /eventos/meus/:id`, `GET /eventos`, `GET /eventos/:id`, `PATCH /eventos/:id`, `DELETE /eventos/:id` |
+| `LotesModule` | Lotes | `POST /eventos/:eventoId/lotes`, `GET /eventos/:eventoId/lotes`, `PATCH /lotes/:id` |
+| `InscricoesModule` | Inscrições | `GET /inscricoes/minhas`, `POST /inscricoes`, `GET /inscricoes`, `GET /inscricoes/:id`, `GET /inscricoes/demo/participante`, `GET /inscricoes/demo/evento/:eventoId` |
+| `CheckinsModule` | Check-in e comparecimento | `POST /inscricoes/:id/checkin`, `GET /eventos/:eventoId/contagem`, `POST /inscricoes/demo/:id/checkin`, `GET /eventos/demo/:eventoId/contagem` |
 
 ### 8.4 Decisões técnicas por componente
 
 | Componente | Decisão a tomar | Escolha do grupo | Justificativa |
 |---|---|---|---|
-| Backend | Estratégia de autenticação (JWT simples, com refresh) | JWT simples | Atende à proteção das rotas sem adicionar a complexidade de refresh token ao MVP. |
-| Backend | Formato de identificador (uuid, cuid, inteiro) | Inteiro autoincremental | O modelo de dados utiliza identificadores inteiros, simplificando os relacionamentos entre as entidades. |
-| Web | Fronteira Server / Client Components | Server Components para consultas e Client Components para formulários e interações | Permite utilizar componentes interativos apenas onde são necessários. |
-| Web | Estratégia de revalidação e cache | Revalidação após operações de alteração | Permite que as informações exibidas sejam atualizadas após alterações realizadas pelo usuário. |
-| Mobile | Gerência de estado (`setState`, Provider, Riverpod, Bloc) | `setState` | O recorte mobile possui poucos fluxos e uma solução simples atende ao escopo do MVP. |
-| Mobile | Nível de autenticação e armazenamento do token | Simplificada | O login será realizado contra a API e o token ficará em memória durante a sessão. |
+| Backend | Estratégia de autenticação | JWT simples (validade de 1 hora) | Atende à proteção das rotas e perfis sem adicionar complexidade de refresh token ao MVP. |
+| Backend | Formato de identificador | Inteiro autoincremental | Simplifica os relacionamentos e rotas REST no modelo de dados. |
+| Web | Fronteira Server / Client Components | Server Components para consultas e Client Components para formulários e interações | Mantém o token em cookie HttpOnly no lado do servidor e isola interatividade apenas onde necessário. |
+| Web | Estratégia de revalidação e cache | Revalidação após operações de alteração | Garante exibição de dados atualizados após cadastros, edições e exclusões. |
+| Mobile | Gerência de estado | `setState` | O recorte mobile possui fluxos diretos e bem delimitados, sem necessidade de gerenciador externo complexo. |
+| Mobile | Nível de autenticação | Simulada (login falso) | Conforme orientação do professor, dispensou-se autenticação real no mobile para priorizar a consulta de ingressos e check-in por busca textual pela recepção; endpoints demo reutilizam os services. |
 
 ### 8.5 Tecnologias e versões
 
 | Tecnologia | Versão | Papel |
 |---|---|---|
-| Node.js | 22 LTS | Runtime do backend |
-| NestJS | 11 | Framework da API |
-| Prisma | 7 (com `@prisma/adapter-pg`) | ORM e migrations |
+| Node.js | 24 (24.22.0) | Runtime do backend |
+| NestJS | 12 (`^12.0.1`) | Framework da API |
+| Prisma | 7 (`^7.10.0` com `@prisma/adapter-pg`) | ORM e migrations |
 | PostgreSQL | 18 | Banco de dados |
-| React | 19 | Biblioteca de interface |
-| Next.js | 15 (App Router) | Framework do cliente web |
-| Flutter / Dart | 3 | Framework do app mobile |
-| Docker | conforme ambiente do grupo | Execução local do PostgreSQL |
+| React | 19.2.8 | Biblioteca de interface |
+| Next.js | 16.3.8 (App Router) | Framework do cliente web |
+| Flutter / Dart | ≥ 3.47 / ≥ 3.14 e < 4.0 (lockfile) | Framework do app mobile |
+| Docker | Docker Desktop | Execução local do PostgreSQL |
 
 ---
+
+### 8.6 Limitações e configuração da entrega
+
+Para habilitar a demonstração mobile, configure também `NODE_ENV=development` e `MOBILE_DEMO=true` no `.env` do backend (o exemplo versionado mantém a demonstração desabilitada). As rotas usam o participante de ID **4** e o recepcionista de ID **9**; não há seed automatizado no ZIP. Antes de demonstrar os ingressos e o check-in, confirme no Prisma Studio que esses registros existem, possuem os perfis correspondentes e que há evento, lote e inscrição vinculados ao participante. Em um banco novo, crie dados pelo web/API ou Prisma Studio e garanta os IDs esperados; se forem diferentes, será necessário ajustar os IDs de demonstração no código. Não habilite essas rotas em produção. A proteção por JWT não é global: `GET /usuarios` permanece público; consulta/edição/exclusão genéricas de usuário por ID são stubs. Não existe cadastro de inscrição pelo mobile. O check-in repetido devolve `200` com `jaRealizado=true`; a lista de espera não é promovida automaticamente. A interface da recepção trata qualquer status não ativo como lista de espera, embora o backend também defina `CANCELADA`.
 
 ## 9. Planejamento de sprints
 
 | Sprint | Etapa | Tema | Requisitos previstos | Responsáveis | Entregáveis |
 |---|---|---|---|---|---|
-| 1 | Etapa 1 | Contrato e fundação | Definição dos requisitos, modelo de dados e contrato da API | todos | PRD, contrato e backend rodando |
-| 2 | Etapa 2 | Backend — eventos e lotes | RF-010 a RF-015 | Maria/Joao | Recursos de eventos e lotes funcionando |
-| 3 | Etapa 2 / 3 | Backend — inscrições e check-in | RF-020 a RF-034 |  | Endpoints do MVP respondendo e início do consumo pelo web |
-| 4 | Etapa 3 | Cliente web | RF-010 a RF-034 aplicáveis ao web | Maria/Joao | Fluxo principal navegável no navegador |
-| 5 | Etapa 4 | App mobile | RF-024, RF-030, RF-031 e RF-033 |  | Recorte mobile funcionando no emulador |
-| 6 | Etapa 5 | Integração e fechamento | Requisitos de prioridade Alta | Maria/Joao | Integração dos três componentes, ajustes finais, relatório e entrega |
-
-As etapas 2, 3 e 4 poderão apresentar sobreposição, permitindo que os clientes sejam desenvolvidos enquanto os endpoints correspondentes do backend são implementados
+| 1 | Etapa 1 | Contrato e fundação | Definição dos requisitos, modelo de dados e contrato da API | Maria e João | PRD, contrato inicial e backend rodando |
+| 2 | Etapa 2 | Backend — auth, eventos e lotes | RF-001 a RF-015 | Maria | Autenticação JWT e módulos de eventos e lotes |
+| 3 | Etapa 2 / 3 | Backend — usuários, inscrições e check-in | RF-020 a RF-034 | Maria | Endpoints completos do MVP respondendo na API |
+| 4 | Etapa 3 | Cliente web | RF-001 a RF-025 e RF-034 aplicáveis ao web | João (com apoio de Maria) | Fluxo de login/cadastro, eventos e gestão de inscrições no navegador |
+| 5 | Etapa 4 | App mobile | RF-024, RF-030 e RF-031 | Maria e João | App Flutter com login simulado, fluxo participante (eventos/ingresso existente) e recepcionista (busca, check-in, contagem) |
+| 6 | Etapa 5 | Integração e fechamento | Requisitos de prioridade Alta | Maria e João | Integração final, revisão da documentação, ajustes finais e entrega |
 
 ---
 
 ## 10. Critérios de aceite (MVP)
 
-- [ ] O organizador consegue cadastrar um evento e consultar seus dados.
-- [ ] O organizador consegue atualizar os dados de um evento.
-- [ ] O organizador consegue cadastrar um lote vinculado a um evento e definir sua quantidade de vagas.
-- [ ] O organizador consegue consultar e atualizar os lotes de um evento.
-- [ ] O sistema consegue registrar uma inscrição vinculada a um evento e a um lote.
-- [ ] Cada inscrição recebe um código único gerado pelo servidor.
-- [ ] Quando não houver vaga disponível no lote, uma nova inscrição pode receber o status `LISTA_ESPERA`.
-- [ ] O organizador consegue consultar as inscrições de um evento e sua situação.
-- [ ] A recepção consegue buscar uma inscrição pelo nome ou pelo código.
-- [ ] A recepção consegue registrar o check-in de uma inscrição válida.
-- [ ] Uma inscrição com status `LISTA_ESPERA` ou `CANCELADA` não consegue realizar check-in.
-- [ ] Repetir o check-in da mesma inscrição não cria um segundo registro.
-- [ ] Repetir o check-in da mesma inscrição não aumenta novamente a quantidade de participantes presentes.
-- [ ] A quantidade de participantes presentes é calculada a partir dos registros de check-in.
-- [ ] O participante consegue consultar sua própria inscrição e seu código pelo aplicativo mobile.
-- [ ] Um evento criado pelo cliente web pode ser consultado por meio da API utilizada pelo aplicativo mobile.
-- [ ] Uma inscrição criada pelo cliente web pode ser consultada pelo aplicativo mobile.
-- [ ] Um check-in realizado pelo aplicativo mobile aparece nas informações de comparecimento consultadas pelo cliente web.
-- [ ] O aplicativo apresenta um token válido à API nas operações protegidas.
-- [ ] Usuários sem permissão recebem resposta de autorização adequada da API.
+Marcação abaixo indica funcionalidade identificada no código, não resultado de execução nesta revisão.
+
+- [x] O organizador consegue cadastrar um evento e consultar seus dados.
+- [x] O organizador consegue atualizar os dados de um evento.
+- [x] O organizador consegue excluir eventos sem vínculos e cadastrar participantes e recepcionistas.
+- [x] O organizador consegue cadastrar um lote vinculado a um evento e definir sua quantidade de vagas.
+- [x] O organizador consegue consultar e atualizar os lotes de um evento.
+- [x] O sistema consegue registrar uma inscrição vinculada a um evento e a um lote.
+- [x] Cada inscrição recebe um código único gerado pelo servidor.
+- [x] Quando não houver vaga disponível no lote, uma nova inscrição recebe o status `LISTA_ESPERA`.
+- [x] O organizador consegue consultar as inscrições de um evento e sua situação.
+- [x] A recepção consegue localizar uma inscrição por nome/código e registrar o check-in.
+- [x] Uma inscrição com status `LISTA_ESPERA` ou `CANCELADA` não consegue realizar check-in.
+- [x] Repetir o check-in da mesma inscrição não cria um segundo registro nem aumenta novamente a quantidade de participantes presentes.
+- [x] A quantidade de participantes presentes é calculada a partir das inscrições ativas com check-in.
+- [x] O participante consegue consultar eventos e visualizar o código textual de ingresso existente pelo aplicativo mobile.
+- [x] Um evento criado pelo cliente web pode ser consultado por meio da API utilizada pelo aplicativo mobile.
+- [x] A API valida o token JWT e o perfil nas rotas protegidas, recusando requisições sem permissão (`401`/`403`). *(No app mobile, adotou-se login simulado por perfil conforme orientação da disciplina.)*
+
+**Pendências da visão inicial e validação:**
+
+- [ ] Autoinscrição pelo mobile — não implementada.
+- [ ] Geração e leitura real de QR Code — apenas representação ilustrativa e tela temporária.
+- [ ] Teste automatizado E2E dos fluxos completos — não localizado no ZIP.
 
 ---
 
-## 11. Fora do escopo (explícito)
+## 11. Fora do escopo e pendências da entrega
 
 - Processamento de pagamentos, venda de ingressos, emissão de notas fiscais e integração com sistemas financeiros.
-- Divulgação, marketing, transmissão do evento, notificações externas e outras funcionalidades que não estejam diretamente relacionadas ao gerenciamento de inscrições, credenciamento e controle de presença.
-- Integração com catracas, leitores físicos de QR Code ou outros equipamentos externos de controle de acesso.
-- Auto-cadastro de usuários e recuperação de senha no MVP.
-- Gerenciamento administrativo completo de eventos, lotes e inscrições pelo aplicativo mobile.
+- Divulgação, marketing, transmissão do evento, notificações externas e funcionalidades fora de inscrições, credenciamento e controle de presença.
+- Integração com catracas ou leitores físicos externos de QR Code.
+- Recuperação de senha por e-mail e refresh token no MVP.
+- Gerenciamento administrativo completo de eventos e lotes pelo aplicativo mobile.
+- Autenticação JWT completa no aplicativo mobile (substituída por login simulado conforme orientação docente).
+- Autoinscrição e QR Code real (pendências da visão inicial, não exigências dispensadas pelo professor segundo a documentação disponível).
+- Cancelamento de inscrição e promoção automática da lista de espera, sem endpoints implementados.
 
 ---
 
@@ -338,4 +350,6 @@ As etapas 2, 3 e 4 poderão apresentar sobreposição, permitindo que os cliente
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 1.0 | 24/09/2026 | Versão inicial do PRD |
+| 1.0 | 24/09/2026 | Versão inicial do PRD. |
+| 1.1 | 25/11/2026 | Atualização final com todos os endpoints implementados, versões reais da stack (NestJS 12, Node 24, versão Flutter informada na documentação anterior), recorte mobile previsto e checklist de aceite. |
+| 1.2 | 26/11/2026 | Revisão de aderência ao ZIP: versões, recorte mobile, rotas demo, requisitos e aceite. |

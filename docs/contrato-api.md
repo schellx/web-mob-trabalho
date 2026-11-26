@@ -1,18 +1,6 @@
 # Contrato da API
 
-Este documento descreve os endpoints implementados na API do sistema de credenciamento e check-in de eventos, incluindo autenticação, permissões, dados aceitos e respostas retornadas pelo backend.
----
-
-## Por que este documento existe
-
-O grupo trabalha em paralelo em três componentes, com menos gente do que frentes. O que impede que um trave o outro é este arquivo: com o contrato fechado, o responsável pelo cliente web pode construir a tela de listagem antes de o endpoint existir, e o responsável pelo mobile pode modelar suas classes de dados sem esperar a primeira migration.
-
-Duas regras práticas decorrem disso:
-
-1. **O contrato muda antes do código, nunca depois.** Quem precisa alterar um endpoint atualiza este documento e avisa o grupo no mesmo dia. Descobrir a mudança quando a tela quebra custa o dobro.
-2. **O contrato é a especificação, não a documentação.** Se ele descreve um comportamento e a API faz outro, o defeito está na API — a menos que o grupo decida conscientemente mudar o contrato.
-
-A régua de qualidade é esta: na entrega final, o contrato precisa ser suficiente para que um quarto cliente seja escrito **sem nenhuma pergunta ao grupo**.
+Este documento descreve os endpoints implementados na API REST do sistema de credenciamento e check-in de eventos **Eventoon**, incluindo autenticação, permissões, dados aceitos e respostas retornadas pelo backend.
 
 ---
 
@@ -21,12 +9,12 @@ A régua de qualidade é esta: na entrega final, o contrato precisa ser suficien
 | Campo | Valor |
 |---|---|
 | Projeto | Eventoon |
-| Versão do contrato | 1.1 |
-| Última atualização | 21/10/2026 |
+| Versão do contrato | 2.1 |
+| Última atualização | 26/11/2026 |
 | URL base (desenvolvimento) | `http://localhost:3000` |
-| Formato | JSON (`Content-Type: application/json`) |
+| Formato | JSON (`Content-Type: application/json`), exceto raiz e stubs de usuário em texto |
 
-> **Nota para o app mobile:** `localhost` dentro do emulador Android aponta para o próprio emulador, não para a máquina do desenvolvedor. Use `http://10.0.2.2:3000` no emulador Android, ou o IP da máquina na rede local para dispositivo físico. Registre a URL usada por cada ambiente na configuração do app, nunca fixa no meio do código.
+> **Nota para o app mobile:** `localhost` dentro do emulador Android aponta para o próprio emulador, não para a máquina do desenvolvedor. Use `http://10.0.2.2:3000` no emulador Android, ou o IP da máquina na rede local para dispositivo físico.
 
 ---
 
@@ -34,48 +22,64 @@ A régua de qualidade é esta: na entrega final, o contrato precisa ser suficien
 
 ### 1.1 Nomenclatura
 
-Os endpoints são organizados por recurso, utilizando nomes em português e sem acentos. Os recursos implementados nesta etapa são eventos e autenticação.
+Os endpoints são organizados por recurso, utilizando nomes em português e sem acentos: `/auth`, `/usuarios`, `/eventos`, `/lotes`, `/inscricoes` e check-in e contagem (rotas aninhadas em `/inscricoes/:id/checkin` e `/eventos/:eventoId/contagem`, além das rotas demonstrativas).
 
-Os endpoints de autenticação são `/auth/login` e `/auth/perfil`. As operações de gerenciamento de eventos utilizam `/eventos` e `/eventos/:id`.
+Os identificadores das entidades (`id`) são números inteiros autoincrementais gerados pelo banco de dados PostgreSQL via Prisma. Todas as datas trafegam como strings no formato ISO 8601 em UTC (`2026-11-15T13:00:00.000Z`).
 
-Os campos dos objetos utilizam nomes em português, com identificadores técnicos como `id`. Os identificadores dos usuários e eventos são números inteiros gerados pelo banco de dados.
+### 1.2 Mapa geral de endpoints
 
-As datas são representadas por strings no formato ISO 8601. Os campos utilizados no recurso Evento são `id`, `nome`, `descricao`, `local`, `data`, `criadoEm` e `organizadorId`.
-
-### 1.2 Métodos e status esperados
-
-| Operação | Método e caminho | Sucesso | Erros comuns |
-|---|---|---|---|
-| Login | POST /auth/login | 200 | 400, 401 |
-| Consultar perfil | GET /auth/perfil | 200 | 401 |
-| Listar eventos | GET /eventos | 200 | 401 |
-| Consultar evento | GET /eventos/:id | 200 | 400, 401, 404 |
-| Cadastrar evento | POST /eventos | 201 | 400, 401, 403 |
-| Atualizar evento | PATCH /eventos/:id | 200 | 400, 401, 403, 404 |
-| Excluir evento | DELETE /eventos/:id | 204 | 400, 401, 403, 404, 409 |
-
-Os códigos de status estão detalhados nas seções específicas de cada endpoint. As operações que exigem um identificador numérico podem retornar `400` quando o parâmetro informado não é válido. As operações restritas ao perfil ORGANIZADOR podem retornar `403` quando o usuário autenticado não possui a permissão necessária.
+| Recurso | Operação | Método e caminho | Perfil exigido | Sucesso | Erros comuns |
+|---|---|---|---|---|---|
+| Auth | Registrar conta | `POST /auth/registro` | Público | `201` | `400`, `409` |
+| Auth | Login | `POST /auth/login` | Público | `200` | `400`, `401` |
+| Auth | Consultar perfil | `GET /auth/perfil` | Autenticado | `200` | `401` |
+| Usuários | Cadastrar participante | `POST /usuarios/participantes` | `ORGANIZADOR` | `201` | `400`, `401`, `403`, `409` |
+| Usuários | Listar participantes | `GET /usuarios/participantes` | `ORGANIZADOR` | `200` | `401`, `403` |
+| Usuários | Cadastrar recepcionista | `POST /usuarios/recepcionistas` | `ORGANIZADOR` | `201` | `400`, `401`, `403`, `409` |
+| Usuários | Listar usuários | `GET /usuarios` | Público (sem guard) | `200` | — |
+| Usuários | Consultar usuário (stub) | `GET /usuarios/:id` | Público (sem guard) | `200` | — |
+| Usuários | Atualizar usuário (stub) | `PATCH /usuarios/:id` | Público (sem guard) | `200` | `400` (DTO) |
+| Usuários | Excluir usuário (stub) | `DELETE /usuarios/:id` | Público (sem guard) | `200` | — |
+| Eventos | Cadastrar evento | `POST /eventos` | `ORGANIZADOR` | `201` | `400`, `401`, `403` |
+| Eventos | Listar meus eventos | `GET /eventos/meus` | `ORGANIZADOR` | `200` | `401`, `403` |
+| Eventos | Consultar meu evento | `GET /eventos/meus/:id` | `ORGANIZADOR` | `200` | `400`, `401`, `403`, `404` |
+| Eventos | Listar todos os eventos | `GET /eventos` | Público | `200` | — |
+| Eventos | Consultar evento | `GET /eventos/:id` | Público | `200` | `400`, `404` |
+| Eventos | Atualizar evento | `PATCH /eventos/:id` | `ORGANIZADOR` | `200` | `400`, `401`, `403`, `404` |
+| Eventos | Excluir evento | `DELETE /eventos/:id` | `ORGANIZADOR` | `204` | `400`, `401`, `403`, `404`, `409` |
+| Lotes | Cadastrar lote no evento | `POST /eventos/:eventoId/lotes` | `ORGANIZADOR` | `201` | `400`, `401`, `403`, `404` |
+| Lotes | Listar lotes do evento | `GET /eventos/:eventoId/lotes` | `ORGANIZADOR` | `200` | `400`, `401`, `403`, `404` |
+| Lotes | Atualizar lote | `PATCH /lotes/:id` | `ORGANIZADOR` | `200` | `400`, `401`, `403`, `404`, `409` |
+| Inscrições | Listar minhas inscrições | `GET /inscricoes/minhas` | `PARTICIPANTE` | `200` | `401`, `403` |
+| Inscrições | Cadastrar inscrição | `POST /inscricoes` | `ORGANIZADOR` | `201` | `400`, `401`, `403`, `404`, `409` |
+| Inscrições | Listar/buscar inscrições do evento | `GET /inscricoes?eventoId=&busca=` | `ORGANIZADOR`, `RECEPCIONISTA` | `200` | `400`, `401`, `403`, `404` |
+| Inscrições | Consultar inscrição | `GET /inscricoes/:id` | `ORGANIZADOR` | `200` | `400`, `401`, `403`, `404` |
+| Check-in | Registrar check-in | `POST /inscricoes/:id/checkin` | `RECEPCIONISTA` | `200` | `400`, `401`, `403`, `404`, `409`, `500` |
+| Check-in | Contagem de presença do evento | `GET /eventos/:eventoId/contagem` | `ORGANIZADOR`, `RECEPCIONISTA` | `200` | `400`, `401`, `403`, `404` |
+| Demo | Ingressos do participante | `GET /inscricoes/demo/participante` | Demo sem JWT | `200` | `403` |
+| Demo | Buscar inscrições do evento | `GET /inscricoes/demo/evento/:eventoId?busca=` | Demo sem JWT | `200` | `400`, `403`, `404` |
+| Demo | Check-in | `POST /inscricoes/demo/:id/checkin` | Demo sem JWT | `200` | `400`, `403`, `404`, `409`, `500` |
+| Demo | Contagem | `GET /eventos/demo/:eventoId/contagem` | Demo sem JWT | `200` | `400`, `403`, `404` |
+| Infra | Rota raiz | `GET /` | Público | `200` | — |
 
 ### 1.3 Formato de erro
 
-A API utiliza o formato padrão de erros do NestJS. O campo `statusCode` informa o código HTTP, o campo `message` contém a descrição do erro e o campo `error` apresenta o tipo de erro.
+A API utiliza o formato padrão de erros do NestJS (`statusCode`, `message` e `error`), com `ValidationPipe` global habilitado (`whitelist`, `forbidNonWhitelisted`, `transform`, `enableImplicitConversion`).
 
-Nas falhas de validação, `message` pode conter uma lista de mensagens. Em outros erros, como recurso não encontrado ou acesso não autorizado, pode conter uma única mensagem.
-
-Exemplo de erro de validação:
+Exemplo de erro de validação (`400`):
 
 ```json
 {
   "statusCode": 400,
   "message": [
-    "nome should not be empty",
-    "local must be a string"
+    "Informe um e-mail válido.",
+    "A senha deve ter pelo menos 8 caracteres."
   ],
   "error": "Bad Request"
 }
 ```
 
-Exemplo de recurso não encontrado:
+Exemplo de recurso não encontrado (`404`):
 
 ```json
 {
@@ -85,26 +89,9 @@ Exemplo de recurso não encontrado:
 }
 ```
 
-O backend utiliza um `ValidationPipe` global com as seguintes opções:
+### 1.4 Paginação e datas
 
-- `whitelist`: considera apenas as propriedades que possuem regras de validação.
-- `forbidNonWhitelisted`: rejeita requisições que contenham propriedades não permitidas.
-- `transform`: transforma os dados recebidos conforme os tipos definidos.
-- `enableImplicitConversion`: permite conversões implícitas de tipos quando aplicáveis.
-
-Não há um filtro de exceções personalizado configurado no arquivo `main.ts`. Os erros seguem o tratamento padrão do NestJS, incluindo as exceções lançadas pelos serviços e guards.
-
-### 1.4 Paginação
-
-A listagem de eventos não utiliza paginação nesta versão da API. O endpoint `GET /eventos` retorna um array JSON contendo os eventos encontrados, ordenados pela data do evento em ordem crescente.
-
-Os parâmetros `page` e `limit` não estão implementados nesse endpoint.
-
-A paginação poderá ser adicionada futuramente caso o volume de eventos exija limitar a quantidade de registros retornados.
-
-### 1.5 Datas
-
-Todas as datas trafegam em ISO 8601, em UTC: `2026-08-13T14:30:00.000Z`. A conversão para o fuso do usuário é responsabilidade de cada cliente.
+As listagens funcionais retornam arrays JSON diretos (sem envelope de paginação `page`/`limit` nesta versão do MVP). Todas as datas trafegam em ISO 8601 UTC; a formatação para o fuso local fica a cargo de cada cliente.
 
 ---
 
@@ -112,322 +99,255 @@ Todas as datas trafegam em ISO 8601, em UTC: `2026-08-13T14:30:00.000Z`. A conve
 
 ### 2.1 Estratégia
 
-A API utiliza autenticação por JWT. O usuário informa seu e-mail e sua senha no login. Se as credenciais forem válidas, o backend retorna um token de acesso e os dados básicos do usuário.
+A API utiliza autenticação via **JWT (JSON Web Token)** com `JwtAuthGuard` e controle de perfis com `RolesGuard` e `@Roles(...)`.
 
-As requisições autenticadas devem enviar o token no cabeçalho:
+As requisições protegidas devem enviar:
 
 ```http
 Authorization: Bearer <token>
 ```
 
-A validade do token é de uma hora. O backend verifica a assinatura e a expiração do JWT utilizando a variável de ambiente JWT_SECRET. Tokens inválidos ou expirados são rejeitados.
-
-As senhas são armazenadas como hash no banco de dados. Durante o login, a senha informada é comparada com o hash armazenado para verificar as credenciais.
-
-No cliente web, o token é armazenado em um cookie HttpOnly. Nas operações autenticadas, o servidor Next.js utiliza esse token no cabeçalho Authorization para realizar as chamadas à API.
-
-Não há endpoint de renovação de token implementado no controlador de autenticação atual.
+A validade do token é de 1 hora, assinado com `JWT_SECRET`. As senhas são armazenadas como hash (`senhaHash`) com `scrypt` do Node.js e sal aleatório; comparação com `timingSafeEqual`. Não há endpoint de refresh token nesta versão.
 
 ### 2.2 Endpoints de autenticação
 
-#### POST /auth/login
+#### `POST /auth/registro`
 
-Autentica o usuário utilizando e-mail e senha.
+Registra uma nova conta de usuário.
+
+Requisição:
+
+```json
+{
+  "nome": "Ana Organizador",
+  "email": "ana@exemplo.com",
+  "senha": "senhaSegura123"
+}
+```
+
+Regras de validação (`RegistroDto`):
+- `nome`: string, entre 2 e 100 caracteres.
+- `email`: e-mail válido, máximo de 254 caracteres.
+- `senha`: string, entre 8 e 128 caracteres.
+
+Resposta `201`: `{"mensagem":"Conta criada com sucesso.","usuario":{"id":1,"nome":"Ana Organizador","email":"ana@exemplo.com","tipo":"ORGANIZADOR"}}`. O perfil é fixado como `ORGANIZADOR`, sem campo `tipo` no DTO. E-mail normalizado no registro; no login o backend pesquisa o e-mail exatamente como recebido.
+
+#### `POST /auth/login`
+
+Autentica o usuário com e-mail e senha.
 
 Requisição:
 
 ```json
 {
   "email": "organizador@exemplo.com",
-  "senha": "senha123"
+  "senha": "senhaSegura123"
 }
 ```
 
-Resposta 200:
+Resposta `200`:
 
 ```json
 {
   "access_token": "eyJhbGciOi...",
   "usuario": {
     "id": 1,
-    "nome": "Nome do usuário",
+    "nome": "Ana Organizador",
     "email": "organizador@exemplo.com",
     "tipo": "ORGANIZADOR"
   }
 }
 ```
 
-O token apresentado é apenas ilustrativo.
+#### `GET /auth/perfil`
 
-Erros:
-| Status | Quando |
-|---|---|
-| 200 | Login realizado com sucesso. |
-| 400 | E-mail com formato inválido ou senha vazia. |
-| 401 | E-mail ou senha incorretos. |
-
-#### GET /auth/perfil
-
-Retorna os dados do usuário autenticado. É necessário enviar um token JWT válido no cabeçalho Authorization.
-
-Resposta 200:
-
-```json
-{
-  "id": 1,
-  "email": "organizador@exemplo.com",
-  "tipo": "ORGANIZADOR"
-}
-```
-
-Erros:
-
-| Status | Quando |
-|---|---|
-| 200 | Consulta realizada com sucesso. |
-| 401 | Token ausente, inválido ou expirado. |
-
-#### Cadastro de usuários
-
-O endpoint POST /auth/registro não está implementado no controlador de autenticação atual. Portanto, não há uma rota de cadastro público de usuários documentada nesta versão da API.
+Requer `JwtAuthGuard`. Retorna o payload do usuário autenticado (`id`, `email`, `tipo`).
 
 ### 2.3 Perfis e permissões
 
 | Perfil | Pode | Não pode |
 |---|---|---|
-| ORGANIZADOR | Cadastrar eventos, listar os próprios eventos, consultar seus detalhes, editar e excluir os próprios eventos. | Editar ou excluir eventos de outro organizador. Excluir eventos que possuam lotes ou inscrições vinculados. |
-| RECEPCIONISTA | Consultar a lista geral de eventos e os detalhes de qualquer evento. | Cadastrar, editar ou excluir eventos. |
-| PARTICIPANTE | Consultar a lista geral de eventos e os detalhes de qualquer evento. | Cadastrar, editar ou excluir eventos. |
-
-Todas as rotas de eventos exigem autenticação. As operações de cadastro, edição e exclusão são restritas ao perfil ORGANIZADOR.
-
-O backend associa cada evento criado ao organizador autenticado, sem depender de um identificador de organizador enviado pelo cliente. Nas operações de consulta individual, edição e exclusão, também verifica se o evento pertence ao organizador autenticado.
-
-A exclusão é recusada quando o evento possui lotes ou inscrições vinculados, retornando o status 409.
+| `ORGANIZADOR` | Criar, listar (`/eventos/meus`), editar e excluir seus próprios eventos; gerenciar lotes; cadastrar participantes e recepcionistas; criar e consultar inscrições; consultar contagem de presença. | Editar ou excluir eventos/lotes de outro organizador; excluir evento com lotes ou inscrições vinculados; registrar check-in. |
+| `RECEPCIONISTA` | Consultar eventos públicos; listar/buscar inscrições de um evento; registrar check-in; consultar contagem de presença. | Criar, editar ou excluir eventos, lotes ou inscrições. |
+| `PARTICIPANTE` | Consultar eventos públicos (`GET /eventos`, `GET /eventos/:id`); consultar suas próprias inscrições (`GET /inscricoes/minhas`). | Acessar endpoints administrativos ou registrar check-in. |
 
 ### 2.4 Armazenamento do token em cada cliente
 
-| Cliente | Onde o token fica | Nível de autenticação | Observação |
+| Cliente | Estratégia | Nível de autenticação | Observação |
 |---|---|---|---|
-| Web (Next.js) | Cookie HttpOnly | Completa | O servidor Next.js utiliza o token nas requisições autenticadas à API. |
-| Mobile (Flutter) | Ainda não implementado nesta etapa | A definir | A estratégia de autenticação do aplicativo será documentada durante a implementação mobile. |
+| Web (Next.js) | Cookie `HttpOnly` | Completa | O servidor Next.js envia o token no cabeçalho `Authorization`; cookie `token`, `HttpOnly`, `SameSite=Lax`, `maxAge=3600`, `Secure` em produção. |
+| Mobile (Flutter) | Login simulado (sem token JWT) | Simulada | Conforme orientação docente, o app permite escolher o perfil (participante ou recepcionista) sem autenticação real e consome `GET /eventos` e quatro rotas demo descritas na seção 3.6. |
 
 ---
 
 ## 3. Recursos
 
-Esta seção descreve os recursos implementados na API, incluindo suas representações, os campos aceitos, as regras de validação e os códigos de resposta. Nesta etapa, o recurso documentado é Evento, utilizado para cadastrar, consultar, editar e excluir eventos.
+### 3.1 Evento (`/eventos`)
 
----
-
-### 3.1 Evento
-
-Descrição: representa um evento que pode receber inscrições e possuir lotes de vagas.
-
-Consumido por: web nesta etapa. O consumo pelo aplicativo mobile será realizado na etapa de implementação do Flutter.
-
-#### Representação
+Representação:
 
 ```json
 {
   "id": 1,
-  "nome": "Evento de tecnologia",
-  "descricao": "Palestras e atividades de tecnologia",
-  "local": "Auditório principal",
-  "data": "2026-11-15T13:00:00.000Z",
+  "nome": "Semana de Tecnologia",
+  "descricao": "Palestras e oficinas práticas",
+  "local": "Auditório Principal",
+  "data": "2026-11-30T13:00:00.000Z",
   "criadoEm": "2026-10-20T15:30:00.000Z",
   "organizadorId": 1
 }
 ```
 
-| Campo | Tipo | Obrigatório na criação | Observação |
-|---|---|---|---|
-| `id` | número inteiro | Não | Gerado automaticamente pelo servidor. |
-| `nome` | string | Sim | Não pode ser vazio. |
-| `descricao` | string ou null | Não | Descrição opcional do evento. |
-| `local` | string | Sim | Não pode ser vazio. |
-| `data` | data/hora ISO 8601 | Sim | Deve ser uma data válida. |
-| `criadoEm` | data/hora ISO 8601 | Não | Gerado automaticamente pelo banco. |
-| `organizadorId` | número inteiro | Não | Definido pelo backend com base no usuário autenticado. |
+- `GET /eventos` (público): lista todos os eventos cadastrados em ordem crescente de data.
+- `GET /eventos/:id` (público): retorna os detalhes de um evento pelo `id` numérico (`400` se inválido, `404` se inexistente).
+- `GET /eventos/meus` (`ORGANIZADOR`): lista apenas os eventos do organizador autenticado.
+- `GET /eventos/meus/:id` (`ORGANIZADOR`): retorna detalhes de um evento específico pertencente ao organizador autenticado.
+- `POST /eventos` (`ORGANIZADOR`): cria evento (`nome` e `local` strings não vazias, `descricao` string opcional, `data` ISO 8601). O `organizadorId` é extraído do JWT. Retorna `201`.
+- `PATCH /eventos/:id` (`ORGANIZADOR`): atualiza parcialmente um evento do organizador autenticado. Retorna `200`.
+- `DELETE /eventos/:id` (`ORGANIZADOR`): exclui evento do organizador autenticado. Retorna `204` sem corpo, ou `409` se houver lotes/inscrições vinculados.
 
-#### GET /eventos
+---
 
-Lista os eventos cadastrados. É necessário estar autenticado.
+### 3.2 Usuário (`/usuarios`)
 
-Os eventos são retornados em ordem crescente de data. Quando o usuário autenticado possui o perfil ORGANIZADOR, são listados apenas os eventos associados a ele. Para os perfis RECEPCIONISTA e PARTICIPANTE, a listagem retorna todos os eventos.
-
-Resposta 200: lista de eventos em formato JSON. A resposta é um array de objetos, sem envelope de paginação.
-
-Exemplo:
-
-```json
-[
-  {
-    "id": 1,
-    "nome": "Evento de tecnologia",
-    "descricao": "Palestras e atividades de tecnologia",
-    "local": "Auditório principal",
-    "data": "2026-11-15T13:00:00.000Z",
-    "criadoEm": "2026-10-20T15:30:00.000Z",
-    "organizadorId": 1
-  }
-]
-```
-
-| Status | Quando |
-|---|---|
-| 200 | Consulta realizada com sucesso, mesmo que a lista esteja vazia. |
-| 401 | Token ausente ou inválido. |
-
-#### GET /eventos/:id
-
-Consulta os dados de um evento pelo seu identificador numérico. É necessário estar autenticado.
-
-Resposta 200: retorna o objeto do evento conforme a representação definida nesta seção.
-
-| Status | Quando |
-|---|---|
-| 200 | Evento encontrado e acessível ao usuário. |
-| 400 | Identificador não numérico. |
-| 401 | Token ausente ou inválido. |
-| 404 | Evento inexistente ou não pertencente ao organizador autenticado. |
-
-#### POST /eventos
-
-Cadastra um evento. Somente usuários com perfil ORGANIZADOR podem executar esta operação.
-
-Requisição:
+Representação (sem expor `senhaHash`):
 
 ```json
 {
-  "nome": "Evento de tecnologia",
-  "descricao": "Palestras e atividades de tecnologia",
-  "local": "Auditório principal",
-  "data": "2026-11-15T13:00:00.000Z"
+  "id": 2,
+  "nome": "Júlia Silva",
+  "email": "julia@exemplo.com",
+  "tipo": "PARTICIPANTE",
+  "criadoEm": "2026-11-01T10:00:00.000Z"
 }
 ```
 
-O campo `organizadorId` não deve ser enviado pelo cliente. O backend obtém esse identificador a partir do usuário autenticado.
+- `POST /usuarios/participantes` (`ORGANIZADOR`): cadastra um usuário com perfil `PARTICIPANTE`.
+- `GET /usuarios/participantes` (`ORGANIZADOR`): lista os usuários com perfil `PARTICIPANTE`.
+- `POST /usuarios/recepcionistas` (`ORGANIZADOR`): cadastra um usuário com perfil `RECEPCIONISTA`.
+- `GET /usuarios`: retorna todos os usuários (id, nome, email, tipo, criadoEm), sem autenticação. `GET /usuarios/:id`, `PATCH /usuarios/:id` e `DELETE /usuarios/:id` não executam CRUD: retornam strings `This action returns/updates/removes a #<id> usuario` (respectivamente). O PATCH aplica o DTO parcial; não há consulta, alteração ou exclusão no banco. Não são rotas administrativas prontas para produção.
+- Cadastro de participante/recepcionista: corpo `{ "nome": "Nome", "email": "pessoa@exemplo.com", "senha": "senha123" }`, nome não vazio, e-mail válido e senha com mínimo de 6 caracteres; perfil fixado pelo endpoint. Duplicidade de e-mail retorna `409`. A criação devolve id, nome, email, tipo, criadoEm; a listagem de participantes devolve id, nome e email em ordem alfabética.
 
-Resposta 201: retorna o evento criado, incluindo seu identificador, a data de criação e o identificador do organizador.
-
-Regras de validação:
-
-| Campo | Regra |
-|---|---|
-| `nome` | Deve ser uma string não vazia. |
-| `descricao` | Opcional; quando informado, deve ser uma string. |
-| `local` | Deve ser uma string não vazia. |
-| `data` | Obrigatória e deve corresponder a uma data válida. |
-
-| Status | Quando |
-|---|---|
-| 201 | Evento cadastrado com sucesso. |
-| 400 | Dados inválidos. |
-| 401 | Token ausente ou inválido. |
-| 403 | Usuário sem perfil ORGANIZADOR. |
-
-#### PATCH /eventos/:id
-
-Atualiza os dados de um evento existente. Somente o organizador responsável pelo evento pode realizar a operação.
-
-Requisição: objeto JSON contendo apenas os campos que serão alterados. Os campos disponíveis são `nome`, `descricao`, `local` e `data`, seguindo as regras de validação do cadastro.
-
-Resposta 200: retorna o evento atualizado.
-
-| Status | Quando |
-|---|---|
-| 200 | Evento atualizado com sucesso. |
-| 400 | Identificador ou dados inválidos. |
-| 401 | Token ausente ou inválido. |
-| 403 | Usuário sem perfil ORGANIZADOR. |
-| 404 | Evento inexistente ou não pertencente ao organizador autenticado. |
-
-#### DELETE /eventos/:id
-
-Exclui um evento existente. Somente o organizador responsável pelo evento pode realizar a operação.
-
-A exclusão não é permitida se o evento possuir lotes ou inscrições vinculados.
-
-Resposta 204: exclusão realizada com sucesso, sem corpo na resposta.
-
-| Status | Quando |
-|---|---|
-| 204 | Evento excluído com sucesso. |
-| 400 | Identificador não numérico. |
-| 401 | Token ausente ou inválido. |
-| 403 | Usuário sem perfil ORGANIZADOR. |
-| 404 | Evento inexistente ou não pertencente ao organizador autenticado. |
-| 409 | Existem lotes ou inscrições vinculados ao evento. |
 ---
+
+### 3.3 Lote (`/eventos/:eventoId/lotes` e `/lotes/:id`)
+
+Todas as rotas exigem autenticação e perfil `ORGANIZADOR`.
+
+Representação:
+
+```json
+{
+  "id": 1,
+  "nome": "1º Lote",
+  "quantidade": 100,
+  "inicio": "2026-11-01T00:00:00.000Z",
+  "fim": "2026-11-20T23:59:59.000Z",
+  "eventoId": 1
+}
+```
+
+- `POST /eventos/:eventoId/lotes`: cria um lote vinculado ao evento (verifica se o evento pertence ao organizador autenticado). Retorna `201`.
+- `GET /eventos/:eventoId/lotes`: lista os lotes do evento do organizador autenticado. Retorna `200`.
+- `PATCH /lotes/:id`: atualiza parcialmente os dados de um lote existente (`nome`, `quantidade`, `inicio`, `fim`). Retorna `200`. A quantidade é inteira ≥ 1, o nome é não vazio, datas ISO 8601 e início deve ser anterior ao fim (`400`); redução abaixo do total de inscrições ativas retorna `409`. A listagem é ordenada por `inicio`.
+
+---
+
+### 3.4 Inscrição (`/inscricoes`)
+
+Representação:
+
+```json
+{
+  "id": 10,
+  "codigo": "EVT-974B1F03C340",
+  "status": "ATIVA",
+  "criadoEm": "2026-11-10T14:20:00.000Z",
+  "participanteId": 2,
+  "eventoId": 1,
+  "loteId": 1
+}
+```
+
+Valores possíveis de `status`: `ATIVA`, `CANCELADA`, `LISTA_ESPERA`.
+
+- `GET /inscricoes/minhas` (`PARTICIPANTE`): retorna as inscrições do participante autenticado.
+- `POST /inscricoes` (`ORGANIZADOR`): cria uma inscrição vinculada a participante, evento e lote. Corpo: `{ "participanteId": 2, "eventoId": 1, "loteId": 1 }` (inteiros positivos). O servidor gera o `codigo` no formato `EVT-` seguido de 12 caracteres hexadecimais maiúsculos e define o `status` como `ATIVA` ou `LISTA_ESPERA`. Evento inexistente ou de outro organizador e participante inexistente/com perfil incorreto resultam em `404`; lote incompatível ou período inválido em `400`. Retorna `201`.
+- `GET /inscricoes?eventoId=<id>&busca=<texto>` (`ORGANIZADOR`, `RECEPCIONISTA`): lista as inscrições de um evento (`eventoId` obrigatório numérico), permitindo filtro opcional pelo parâmetro `busca` (nome do participante ou código da inscrição).
+- `GET /inscricoes/:id` (`ORGANIZADOR`): consulta os detalhes de uma inscrição específica pertencente ao organizador; retorna `404` se inexistente ou de outro organizador.
+
+---
+
+### 3.5 Check-in e Contagem (`/inscricoes/:id/checkin` e `/eventos/:eventoId/contagem`)
+
+- `POST /inscricoes/:id/checkin` (`RECEPCIONISTA`): registra a entrada do participante para a inscrição informada, associando automaticamente o `recepcionistaId` do usuário autenticado. Retorna `200 OK` com `inscricaoId`, `codigo`, `realizadoEm` e `jaRealizado` (booleano). Inscrição inexistente: `404`; status diferente de `ATIVA`: `409`. Repetição válida: `200`, `jaRealizado: true`, preservando o horário original.
+- `GET /eventos/:eventoId/contagem` (`ORGANIZADOR`, `RECEPCIONISTA`): retorna `{ "eventoId": 1, "totalInscricoes": 12, "totalInscritos": 10, "totalPresentes": 6, "totalNaoPresentes": 4, "totalListaEspera": 2 }`. `totalInscricoes` inclui todos os status; os três totais inscritos/presentes/não presentes consideram somente `ATIVA`; `totalListaEspera` conta `LISTA_ESPERA`. Evento inexistente ou de outro organizador (quando perfil organizador): `404`.
+
+---
+
+### 3.6 Endpoints de demonstração mobile (sem JWT)
+
+Para habilitar a demonstração mobile, configure também `NODE_ENV=development` e `MOBILE_DEMO=true` no `.env` do backend (o exemplo versionado mantém a demonstração desabilitada). As rotas usam o participante de ID **4** e o recepcionista de ID **9**; não há seed automatizado no ZIP. Antes de demonstrar os ingressos e o check-in, confirme no Prisma Studio que esses registros existem, possuem os perfis correspondentes e que há evento, lote e inscrição vinculados ao participante. Em um banco novo, crie dados pelo web/API ou Prisma Studio e garanta os IDs esperados; se forem diferentes, será necessário ajustar os IDs de demonstração no código. Não habilite essas rotas em produção.
+
+| Método e rota | Implementação / retorno |
+|---|---|
+| `GET /inscricoes/demo/participante` | `findMinhas(4)`: array de inscrições do participante fixo. |
+| `GET /inscricoes/demo/evento/:eventoId?busca=<texto>` | `findAll(eventoId, 9, 'RECEPCIONISTA', busca)`: lista com dados do participante, lote e check-in. |
+| `POST /inscricoes/demo/:id/checkin` | `registrar(id, 9)`, sem corpo: mesmo retorno e regras da rota protegida. |
+| `GET /eventos/demo/:eventoId/contagem` | `contar(eventoId, 9, 'RECEPCIONISTA')`: mesmos totais da rota protegida. |
+
+As duas rotas demo de inscrições exigem `MOBILE_DEMO === 'true'` **e** `NODE_ENV === 'development'`; as duas rotas de check-in/contagem exigem `MOBILE_DEMO === 'true'` **e** `NODE_ENV !== 'production'`. A recomendação comum é usar exclusivamente `development`. Não há verificação de identidade ou associação recepcionista-evento nas rotas demo; o ID 9 precisa existir para a FK do check-in. O participante do app não cria inscrição. O backend protegido continua exigindo JWT e perfil. Não há endpoint para emissão de QR, cancelamento de inscrição ou promoção de lista de espera.
+
+### 3.7 Formato de retorno das inscrições por operação
+
+Além dos campos escalares da inscrição, `POST /inscricoes` inclui `participante` (`id`, `nome`, `email`) e `lote` (`id`, `nome`, `quantidade`). A listagem por evento inclui esses objetos e `checkIn` (`id`, `realizadoEm` ou `null`), ordenada por `criadoEm` decrescente. `GET /inscricoes/:id` acrescenta `evento` (`id`, `nome`) e `checkIn` completo. A consulta de ingressos (`minhas` e demo participante) inclui `evento` (`id`, `nome`, `descricao`, `local`, `data`), `lote` (`id`, `nome`, `inicio`, `fim`) e `checkIn` (`realizadoEm` ou `null`), em ordem decrescente de criação. A busca por código ou nome usa `contains` sem distinção de maiúsculas/minúsculas.
+
+### 3.8 Autorização efetiva e erros
+
+Os guards verificam token e papel (`401`/`403`). Quando o organizador tenta acessar um evento, lote, inscrição ou contagem que não lhe pertence, o serviço retorna `404`, não `403`. O recepcionista autenticado pode consultar e registrar check-in em qualquer evento; não há associação explícita a um evento no modelo. Os endpoints públicos de usuários permanecem uma limitação de segurança. `GET /` responde texto `Hello World!` (não JSON).
 
 ## 4. Endpoints de regra de negócio
 
-Nesta versão da API, não há um endpoint separado para executar uma operação específica de regra de negócio. A regra implementada atualmente está associada à exclusão de eventos.
+### 4.1 Exclusão protegida de eventos (`DELETE /eventos/:id`)
 
-### 4.1 Regra de exclusão de eventos
+Antes de excluir um evento, o backend verifica se ele pertence ao organizador autenticado e se possui lotes ou inscrições vinculados. Caso possua vínculos, retorna `409 Conflict`.
 
-Endpoint: DELETE /eventos/:id
+### 4.2 Controle de vagas e lista de espera (`POST /inscricoes`)
 
-O que faz: exclui um evento pertencente ao organizador autenticado, desde que não existam lotes ou inscrições vinculados a ele.
+O backend gera automaticamente o `codigo` único da inscrição (campos extras são rejeitados com `400`) e conta as inscrições ativas no lote dentro de uma transação `Serializable`. Verifica período de validade e vínculo do lote com evento. Em erro de concorrência Prisma `P2034`, tenta até três vezes, retornando `409` se esgotadas. Quando o limite `quantidade` do lote é atingido, a inscrição é registrada com status `LISTA_ESPERA`.
 
-Pré-condições:
-- O usuário deve estar autenticado.
-- O usuário deve possuir o perfil ORGANIZADOR.
-- O evento deve existir e pertencer ao organizador autenticado.
-- O evento não pode possuir lotes ou inscrições vinculados.
+### 4.3 Registro e idempotência de check-in (`POST /inscricoes/:id/checkin`)
 
-Requisição: não possui corpo. O identificador do evento é enviado como parâmetro da rota.
+- Inscrições com status `LISTA_ESPERA` ou `CANCELADA` são impedidas de realizar check-in.
+- A relação `CheckIn.inscricaoId` possui restrição `@unique` no banco de dados, garantindo no máximo um check-in por inscrição. Tentativas repetidas não duplicam o registro nem alteram a contagem de presentes: `createMany({ skipDuplicates: true })` seguido da consulta do registro existente. Se não for possível confirmar o registro, retorna `500`.
 
-Resposta 204: evento excluído com sucesso, sem corpo na resposta.
-
-Erros específicos:
-
-| Status | Quando |
-|---|---|
-| 401 | Token ausente ou inválido. |
-| 403 | Usuário sem perfil ORGANIZADOR. |
-| 404 | Evento inexistente ou não pertencente ao organizador autenticado. |
-| 409 | O evento possui lotes ou inscrições vinculados e não pode ser excluído. |
-
-A verificação é realizada no backend antes da exclusão. Dessa forma, a regra não depende apenas da interface web e também se aplica a outros clientes que utilizem a API.
 ---
 
 ## 5. Diferenças de consumo entre os clientes
 
-Até esta etapa, não foram implementadas diferenças específicas nos endpoints para atender separadamente ao cliente web e ao aplicativo mobile. A API utiliza o mesmo contrato REST, com respostas em JSON e as mesmas regras de autenticação e autorização.
-
-O frontend web utiliza os endpoints de autenticação e gerenciamento de eventos. O consumo pelo aplicativo mobile será definido durante a implementação do Flutter, mantendo o contrato compartilhado com o backend.
-
-| Endpoint | Diferença | Cliente | Motivo |
+| Fluxo / Endpoint | Cliente Web (Next.js) | App Mobile (Flutter) | Motivo |
 |---|---|---|---|
-| Endpoints de autenticação e eventos | Nenhuma diferença específica implementada até esta etapa. | Web; mobile ainda não integrado. | Manter uma única API para os dois clientes. |
+| Autenticação | Login e cadastro reais (`POST /auth/login`, `POST /auth/registro`) com cookie `HttpOnly`. | Login simulado (seleção de perfil Participante ou Recepcionista). | Orientação da disciplina para priorizar os fluxos principais do mobile no prazo do MVP. |
+| Eventos | Consome `GET /eventos/meus`, `POST/PATCH/DELETE /eventos` para gestão completa. | Consome `GET /eventos`; detalhes usam o objeto já retornado pela listagem. | Separação entre fluxo administrativo (web) e consulta (mobile). |
+| Inscrições e Check-in | Gerencia inscrições e acompanha presença no painel administrativo. | Participante consulta código textual; recepcionista busca nome/código, registra check-in e consulta contagem pelas rotas demo. | Mobilidade na recepção; câmera/QR real não implementados. |
 
 ---
 
 ## 6. Como verificar o contrato
 
-A correspondência entre o contrato e a API é verificada por meio da compilação dos componentes e de testes manuais das requisições.
+- [ ] Reexecutar compilação do backend e frontend no ambiente configurado; não executada nesta revisão.
+- [ ] Reexecutar testes manuais integrados em banco de desenvolvimento. Existem registros históricos de validação, mas não foram reexecutados nesta revisão.
+- [x] Conferência estática dos DTOs, controllers, services e consumidores com este contrato.
+- [x] Identificação dos testes Vitest e Flutter no código (execução não confirmada).
+- [ ] Swagger habilitado no backend (não adotado no MVP; contrato mantido neste documento).
 
-Até o checkpoint 2, foram realizados testes de autenticação, consulta e cadastro de eventos utilizando requisições HTTP. Também foram verificados o acesso às rotas protegidas e o comportamento das operações de gerenciamento de eventos.
-
-A validação do contrato deve considerar os seguintes itens:
-
-- [ ] Coleção de requisições versionada no repositório, em arquivo `.http`, Insomnia ou Postman.
-- [ ] Swagger habilitado no backend. Até o momento, não há configuração do Swagger no arquivo `backend/src/main.ts`.
-- [ ] Tipos do frontend conferidos em relação ao contrato da API.
-- [ ] Modelos do aplicativo mobile conferidos em relação ao contrato. A implementação mobile ainda não foi realizada nesta etapa.
-
-A compilação bem-sucedida e os testes manuais ajudam a verificar o funcionamento dos endpoints, mas não substituem a atualização do contrato quando houver mudanças na API.
-
-O contrato deve permanecer alinhado ao código implementado, incluindo os campos das requisições e respostas, os códigos de status e as regras de autenticação e autorização.
 ---
 
 ## 7. Histórico de revisões
 
 | Versão | Data | Alteração | Impacto nos clientes |
 |---|---|---|---|
-| 1.0 | 03/09/2026 | Criação inicial do contrato da API no repositório. | Definição inicial da interface entre o backend e os clientes. |
-| 1.1 | 21/10/2026 | Revisão do contrato com base no código implementado, incluindo autenticação, permissões, endpoints de eventos, validações, erros e paginação. | Web: contrato atualizado para as operações implementadas. Mobile: referência para a futura integração com a API. |
-
----
+| 1.0 | 03/09/2026 | Criação inicial do contrato da API no repositório. | Definição inicial da interface entre backend e clientes. |
+| 1.1 | 21/10/2026 | Revisão do contrato com autenticação JWT e CRUD de eventos. | Web integrado ao CRUD de eventos e autenticação. |
+| 2.0 | 25/11/2026 | Documentação completa de todos os módulos implementados (`auth/registro`, `usuarios`, `eventos/meus`, `lotes`, `inscricoes`, `checkins`) e registro da estratégia simulada no mobile. | Alinhamento final entre backend, cliente web e app mobile Flutter. |
+| 2.1 | 26/11/2026 | Revisão estática dos controllers, services e DTOs; inclusão das quatro rotas demo, respostas reais, stubs e concorrência. | Contrato ajustado ao ZIP entregue. |
