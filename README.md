@@ -1,348 +1,463 @@
 # Projeto integrador — Programação Web e Mobile
 
-Repositório-modelo do trabalho final: **um serviço e dois clientes**. Uma API REST concentra as regras de negócio e os dados; um cliente web e um aplicativo mobile a consomem.
+## EvenToon — Credenciamento e check-in de eventos
 
-Este repositório traz a **estrutura**: as pastas, os templates de documentação e o passo a passo para inicializar os três projetos.
+Projeto final da disciplina de Programação Web e Mobile: **um serviço e dois clientes**. Uma API REST concentra as regras de negócio e os dados; um cliente web e um aplicativo mobile consomem a mesma API.
 
-> **O enunciado completo do trabalho — temas disponíveis, escopo, etapas, prazos e critérios de avaliação — está na página da disciplina.** Este README não repete essas informações; ele cuida do repositório.
+O EvenToon permite gerenciar eventos, lotes, vagas e inscrições, gerar códigos únicos de ingresso, manter inscrições em lista de espera e acompanhar o credenciamento e a presença dos participantes. O sistema não contempla pagamentos ou venda de ingressos.
+
+**Integrantes:** Maria Eduarda Schell e João Vitor Dalla Lana.
+
+> O enunciado completo do trabalho — etapas, prazos e critérios de avaliação — está na página da disciplina. Este README descreve a estrutura implementada e os passos para executar o projeto.
 
 ---
 
 ## Estrutura
 
-```
+```text
 /
-├── README.md                 ← este arquivo
-├── docker-compose.yml        ← PostgreSQL 18 local (opcional — veja as opções de banco)
+├── README.md
+├── docker-compose.yml        # PostgreSQL 18 local
 ├── .gitignore
 ├── docs/
-│   ├── visao.md              ← Documento de Visão        (Etapa 0)
-│   ├── prd.md                ← PRD                       (Etapa 1)
-│   ├── contrato-api.md       ← Contrato REST da API      (Etapa 1, sempre atualizado)
-│   ├── equipe.md             ← Composição e contribuições (Etapa 0, toda etapa)
-│   ├── relatorio.md          ← Diário técnico            (toda etapa)
-│   └── rfc-001.md            ← Mudança de requisito      (só se o professor publicar)
-├── backend/                  ← API NestJS      (criada na Etapa 1)
-├── web/                      ← Cliente Next.js (criado na Etapa 3)
-└── mobile/                   ← App Flutter     (criado na Etapa 4)
+│   ├── visao.md              # Documento de Visão (Etapa 0)
+│   ├── prd.md                # Requisitos do produto (Etapa 1)
+│   ├── contrato-api.md       # Contrato REST da API
+│   ├── equipe.md             # Composição e contribuições
+│   ├── relatorio.md          # Diário técnico
+│   └── rfc-001.md            # Mudança de requisito, se aplicável
+├── backend/                  # API REST — NestJS e Prisma
+├── frontend/                 # Cliente web — Next.js
+├── mobile/                   # Aplicativo — Flutter
+└── web/                      # Arquivos estáticos do Flutter Web
 ```
 
-As três pastas de código não existem ainda: cada uma nasce na etapa correspondente, seguindo o passo a passo abaixo. **Um único repositório para os três componentes** — não criem repositórios separados.
+Os três componentes estão no mesmo repositório. O cliente web Next.js está em `frontend/`, e não em `web/`. A pasta `web/` da raiz contém arquivos de suporte do Flutter Web; a estrutura web utilizada pelo aplicativo Flutter está em `mobile/web/`. A pasta `web/` da raiz não é um projeto executável independente.
+
+## Tecnologias
+
+| Componente | Tecnologias |
+|---|---|
+| Backend | Node.js, TypeScript, NestJS 12, Prisma 7, PostgreSQL 18 |
+| Autenticação | JWT, Passport, controle de perfis e hash de senha com scrypt |
+| Cliente web | Next.js 16 (App Router), React 19, TypeScript, CSS Modules e Server Actions |
+| Mobile | Flutter, Dart e pacote `http` |
+| Banco local | Docker Compose |
+| Testes e qualidade | Vitest e Oxlint (backend), ESLint (frontend), Flutter Test (mobile) |
+
+As versões exatas das dependências estão nos arquivos `package.json`, `package-lock.json`, `pubspec.yaml` e `pubspec.lock` dos respectivos componentes.
+
+## Funcionalidades implementadas
+
+| Perfil | Cliente | Funcionalidades |
+|---|---|---|
+| Organizador | Web | Cadastro de conta, login e logout; listagem, criação, edição, consulta e exclusão de seus eventos; gerenciamento de lotes; cadastro de participantes e recepcionistas; criação e consulta de inscrições; relatório de presença. |
+| Recepcionista | Mobile (demonstração) | Seleção de evento, consulta de participantes, busca por nome ou código, registro de check-in e contagem de inscritos e presentes. |
+| Participante | Mobile (demonstração) | Consulta de eventos e detalhes, visualização dos próprios ingressos, códigos de inscrição e situação do ingresso. |
+
+O backend valida o período e a capacidade dos lotes, gera o código de inscrição, coloca novas inscrições em lista de espera quando não há vagas e impede a duplicação de check-ins. O check-in é permitido somente para inscrições ativas.
+
+O cliente web utiliza autenticação JWT. O acesso mobile é demonstrativo: os dados digitados no login não são validados e o aplicativo utiliza rotas específicas de desenvolvimento. A tela de leitura de QR Code é apenas ilustrativa, sem integração com a câmera. A inscrição é criada pelo organizador no web; o mobile ainda não realiza novas inscrições. Não há operação de cancelamento de inscrição ou promoção automática da lista de espera implementada.
 
 ---
 
-## Criando o repositório do grupo
+## Preparando o ambiente
 
-Este repositório é um *template* do GitHub. No repositório do professor, use o botão **"Use this template" → "Create a new repository"**. Não use *fork*.
+Antes de executar o projeto, tenha instalado:
 
-O template dá ao grupo um histórico limpo, começando no primeiro commit de vocês, e permite repositório privado. Depois de criar, deem acesso ao professor.
+- Git;
+- Node.js 24 LTS e npm (o Prisma 7 também admite Node.js 20.19+ ou 22.12+, dentro das respectivas linhas suportadas);
+- Docker Desktop ou outra instalação acessível do PostgreSQL 18;
+- Flutter SDK com Dart compatível com `^3.14.0`, conforme `mobile/pubspec.yaml`;
+- Android Studio e um emulador Android para executar o aplicativo nativo, ou Chrome para executar o Flutter Web. Para iOS, são necessários macOS e Xcode, além do ajuste de endereço da API descrito adiante.
+
+Clone o repositório do grupo (caso ainda não tenha uma cópia):
 
 ```bash
-git clone https://github.com/<seu-usuario>/<seu-repo>.git
-cd <seu-repo>
+git clone https://github.com/schellx/web-mob-trabalho.git
+cd web-mob-trabalho
 ```
+
+As pastas dos três projetos já existem. Não é necessário executar `nest new`, `create-next-app`, `flutter create` ou `prisma init` novamente.
 
 ---
 
 ## Passo a passo — banco de dados
 
-O que o projeto exige é **um PostgreSQL 18 acessível**, com um banco e um usuário. Como ele chega até aí é escolha do grupo — **o Docker é opcional**.
+O projeto utiliza **PostgreSQL 18**. O grupo adotou Docker Compose, mas o Docker é opcional se já houver um banco acessível.
 
-Qualquer uma das opções abaixo serve. O que importa é que, ao final, esta URL funcione:
+A URL padrão do ambiente local é:
 
-```
+```text
 postgresql://app:app@localhost:5432/appdb?schema=public
 ```
 
-Se o grupo usar outro usuário, senha, porta ou nome de banco, tudo bem: basta ajustar o `DATABASE_URL` do backend de acordo. Registre a escolha em `docs/relatorio.md`, para que outra pessoa consiga reproduzir o ambiente.
+Se forem utilizados outros dados de conexão, ajuste `DATABASE_URL` no backend.
 
-### Opção A — Docker Compose (mais rápido)
+### Opção A — Docker Compose (utilizada pelo grupo)
 
-O `docker-compose.yml` na raiz já vem configurado com banco `appdb`, usuário `app` e senha `app`.
+O `docker-compose.yml` na raiz está configurado com banco `appdb`, usuário `app` e senha `app`.
+
+Na raiz do repositório:
 
 ```bash
 docker compose up -d          # sobe o banco na porta 5432
-docker compose ps             # confere que está de pé
-docker compose logs -f db     # acompanha os logs, se precisar
-docker compose down           # derruba (os dados ficam no volume)
+docker compose ps             # confere se o banco está de pé
+docker compose logs -f db     # acompanha os logs, se necessário
 ```
 
-Vantagem: ninguém instala nada além do Docker, e todos no grupo têm exatamente a mesma versão do banco.
+Para parar o banco ao terminar:
+
+```bash
+docker compose down           # os dados ficam no volume
+```
 
 ### Opção B — PostgreSQL instalado na máquina
 
-Quem já tem PostgreSQL instalado, ou prefere não usar Docker, pode ir por aqui. **Apague o `docker-compose.yml`** do repositório nesse caso, para não deixar no projeto um arquivo que ninguém usa.
-
-**1. Instalar o PostgreSQL 18**, se ainda não tiver:
-
-| Sistema | Caminho usual |
-|---|---|
-| Windows | Instalador oficial em [postgresql.org/download](https://www.postgresql.org/download/) |
-| macOS | `brew install postgresql@18` e depois `brew services start postgresql@18` |
-| Ubuntu / Debian | Repositório PGDG, conforme as instruções em [postgresql.org/download](https://www.postgresql.org/download/) |
-
-**2. Criar o usuário e o banco.** Abra o `psql` com um usuário administrador e rode:
+Com o PostgreSQL 18 instalado, crie o usuário e o banco pelo `psql` ou pgAdmin:
 
 ```sql
 CREATE USER app WITH PASSWORD 'app';
 CREATE DATABASE appdb OWNER app;
 ```
 
-No Linux, o caminho costuma ser `sudo -u postgres psql`. No macOS com Homebrew, `psql postgres`. No Windows, use o pgAdmin ou o SQL Shell que vem com o instalador.
-
-**3. Conferir a conexão:**
+Confira a conexão:
 
 ```bash
 psql "postgresql://app:app@localhost:5432/appdb" -c "SELECT version();"
 ```
 
-Se a versão aparecer, o backend vai conectar.
-
-> **Se a porta 5432 já estiver ocupada** por outra instalação de PostgreSQL, use outra porta (5433, por exemplo) e reflita isso no `DATABASE_URL`. É o problema mais comum de quem já tinha o banco instalado antes.
+Se a porta 5432 estiver ocupada, utilize outra porta e ajuste a conexão do backend. Não é necessário apagar o `docker-compose.yml` para utilizar esta opção.
 
 ### Opção C — serviço gerenciado na nuvem
 
-Também é aceito usar um PostgreSQL hospedado, desde que seja **versão 18** e que a URL de conexão fique no `.env` de cada integrante, nunca no Git. Nesse caso não há nada para subir localmente: o `DATABASE_URL` aponta direto para o serviço.
+Também é possível utilizar PostgreSQL 18 hospedado. Nesse caso, configure a URL de conexão no `.env` do backend e não versione as credenciais.
 
 ---
 
-## Passo a passo — backend (NestJS + Prisma) · Etapa 1
+## Passo a passo — backend (NestJS + Prisma)
 
-### 1. Criar o projeto
+### 1. Instalar as dependências
+
+Na raiz do repositório:
 
 ```bash
-npm i -g @nestjs/cli
-nest new backend --package-manager npm --skip-git
 cd backend
+npm ci
 ```
 
-### 2. Instalar as dependências
+### 2. Configurar as variáveis de ambiente
 
-```bash
-# validação de entrada e configuração
-npm i @nestjs/config class-validator class-transformer
-
-# autenticação (usada a partir da aula de JWT)
-npm i @nestjs/jwt @nestjs/passport passport passport-jwt
-npm i -D @types/passport-jwt
-
-# Prisma 7 — o adaptador de driver é obrigatório na versão 7
-npm i @prisma/client @prisma/adapter-pg pg dotenv
-npm i -D prisma @types/pg
-```
-
-### 3. Inicializar o Prisma
-
-```bash
-npx prisma init --datasource-provider postgresql
-```
-
-Crie o arquivo `backend/.env` (ele **não** vai para o Git):
+Crie `backend/.env` a partir de `backend/.env.example`.
 
 ```env
 DATABASE_URL="postgresql://app:app@localhost:5432/appdb?schema=public"
-JWT_SECRET="troque-este-valor"
+JWT_SECRET="troque-por-uma-chave-secreta-local"
+NODE_ENV=development
+MOBILE_DEMO=false
 ```
 
-E versione um `backend/.env.example` com as mesmas chaves e valores fictícios.
+Substitua o valor de `JWT_SECRET` por uma chave secreta local. O arquivo `.env` não deve ser versionado.
 
-### 4. Ajustar o `schema.prisma`
+Para testar também os fluxos demonstrativos do aplicativo mobile, altere `MOBILE_DEMO` para `true` e mantenha `NODE_ENV=development`. Reinicie o backend após mudar essas variáveis. O modo demonstrativo não deve ser utilizado em produção.
 
-Na versão 7 o gerador mudou de nome e passou a exigir um caminho de saída:
+A API utiliza a porta 3000 por padrão; é possível alterá-la com a variável opcional `PORT` (nesse caso, ajuste também os clientes).
 
-```prisma
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-}
+### 3. Aplicar as migrations e gerar o Prisma Client
 
-datasource db {
-  provider = "postgresql"
-}
-```
-
-### 5. Criar o `prisma.config.ts` na raiz do backend
-
-```ts
-import 'dotenv/config'
-import { defineConfig, env } from 'prisma/config'
-
-export default defineConfig({
-  schema: 'prisma/schema.prisma',
-  migrations: { path: 'prisma/migrations' },
-  datasource: { url: env('DATABASE_URL') },
-})
-```
-
-### 6. Primeira migration
-
-Com o banco no ar, por qualquer uma das opções acima:
+Com o banco em execução, dentro de `backend/`:
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma migrate deploy
 npx prisma generate
 ```
 
-### 7. O `PrismaService`
+As migrations já estão versionadas em `backend/prisma/migrations/`. O comando `migrate deploy` aplica as migrations existentes sem criar outra migration. Para desenvolver novas alterações no schema, utilize `npx prisma migrate dev --name <nome>`.
 
-Crie `backend/src/prisma/prisma.service.ts`. Repare em dois detalhes da versão 7: o `PrismaClient` vem do **caminho gerado**, não de `@prisma/client`, e o adaptador é passado ao `super()`.
+O Prisma 7 utiliza o gerador `prisma-client`, com saída em `backend/generated/prisma/`. A conexão PostgreSQL é configurada em `prisma.config.ts` e utiliza o adaptador `@prisma/adapter-pg` no `PrismaService`.
 
-```ts
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../../generated/prisma/client'
-
-@Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  constructor() {
-    super({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) })
-  }
-
-  async onModuleInit() {
-    await this.$connect()
-  }
-
-  async onModuleDestroy() {
-    await this.$disconnect()
-  }
-}
-```
-
-### 8. Subir e conferir
+### 4. Subir e conferir
 
 ```bash
-npm run start:dev             # http://localhost:3000
+npm run start:dev
 ```
+
+A API fica disponível em `http://localhost:3000`. A rota `GET /` retorna `Hello World!` e `GET /eventos` permite consultar os eventos públicos cadastrados.
+
+### Estrutura do backend
+
+```text
+backend/
+├── .env.example
+├── package.json
+├── package-lock.json
+├── prisma.config.ts
+├── prisma/
+│   ├── schema.prisma
+│   └── migrations/
+├── generated/prisma/         # gerado localmente pelo Prisma
+├── src/
+│   ├── main.ts               # inicialização, CORS e validação global
+│   ├── app.module.ts
+│   ├── app.controller.ts
+│   ├── app.service.ts
+│   ├── auth/                 # login, registro, JWT e guards de perfil
+│   ├── usuarios/             # usuários, participantes e recepcionistas
+│   ├── eventos/              # gerenciamento de eventos
+│   ├── lotes/                # gerenciamento de lotes
+│   ├── inscricoes/           # vagas, códigos e lista de espera
+│   ├── checkins/             # registro de presença e contagem
+│   └── prisma/               # serviço de acesso ao banco
+├── test/                     # testes e2e
+├── vitest.config.ts
+└── vitest.config.e2e.ts
+```
+
+Os modelos do banco são `Usuario`, `Evento`, `Lote`, `Inscricao` e `CheckIn`. Os perfis de usuário são `ORGANIZADOR`, `RECEPCIONISTA` e `PARTICIPANTE`. Os status de inscrição são `ATIVA`, `CANCELADA` e `LISTA_ESPERA` (a existência do status `CANCELADA` no modelo não significa que haja uma operação de cancelamento disponível).
 
 ### Comandos do dia a dia
 
 | Comando | Para quê |
 |---|---|
 | `npm run start:dev` | Sobe a API com recarga automática |
-| `npx prisma migrate dev --name <nome>` | Cria e aplica uma migration |
-| `npx prisma studio` | Abre o navegador de dados do Prisma |
-| `npx prisma generate` | Regenera o client depois de mudar o schema |
-| `nest g resource <recurso>` | Gera módulo, controller, service e DTOs de um recurso |
+| `npm run build` | Compila o backend |
+| `npx prisma migrate deploy` | Aplica migrations existentes |
+| `npx prisma migrate dev --name <nome>` | Cria e aplica uma nova migration |
+| `npx prisma generate` | Regenera o Prisma Client |
+| `npx prisma studio` | Abre a interface de consulta e edição de dados |
+| `npm test` | Executa testes com Vitest |
+| `npm run test:e2e` | Executa testes de ponta a ponta |
+| `npm run lint` | Executa o Oxlint |
 
 ---
 
-## Passo a passo — cliente web (Next.js) · Etapa 3
+## Passo a passo — cliente web (Next.js)
 
-### 1. Criar o projeto
+### 1. Instalar as dependências
 
-Rode na **raiz do repositório**, não dentro de `backend/`:
+Na raiz do repositório, em outro terminal:
 
 ```bash
-npx create-next-app@latest web --typescript --eslint --app --src-dir --use-npm
-cd web
+cd frontend
+npm ci
 ```
-
-Responda **sim** ao App Router quando perguntado. O trabalho não usa Pages Router.
 
 ### 2. Apontar para a API
 
-Crie `web/.env.local` (fora do Git) e o `web/.env.example` correspondente:
+O frontend utiliza a variável de ambiente **`API_URL`**, lida no servidor Next.js. Por padrão, o código utiliza `http://localhost:3000`.
+
+Para alterar esse endereço, crie opcionalmente `frontend/.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL="http://localhost:3000"
+API_URL=http://localhost:3000
 ```
+
+Não é necessário configurar `NEXT_PUBLIC_API_URL`. O projeto não contém um `.env.example` no frontend.
 
 ### 3. Subir
 
 ```bash
-npm run dev                   # http://localhost:3001, se a API já ocupa a 3000
+npm run dev -- -p 3001
 ```
 
-Se a porta 3000 estiver ocupada pelo backend, use `npm run dev -- -p 3001`.
+Acesse `http://localhost:3001`. Crie uma conta de organizador em `/cadastro` e entre em `/login`. As ações autenticadas do Next.js utilizam o JWT armazenado em um cookie HttpOnly, com validade de uma hora, para enviar requisições à API com `Authorization: Bearer <token>`.
 
-### Estrutura sugerida
+### Estrutura do cliente web
 
-```
-web/src/
-├── app/                      # rotas (App Router)
+```text
+frontend/
+├── app/
+│   ├── actions/
+│   │   ├── auth.ts
+│   │   ├── eventos.ts
+│   │   ├── inscricoes.ts
+│   │   ├── lotes.ts
+│   │   └── recepcionistas.ts
+│   ├── components/
+│   │   └── ThemeToggle.tsx
+│   ├── cadastro/page.tsx
+│   ├── login/page.tsx
+│   ├── eventos/
+│   │   ├── layout.tsx
+│   │   ├── novo/page.tsx
+│   │   └── [id]/
+│   │       ├── page.tsx
+│   │       ├── editar/page.tsx
+│   │       ├── inscricoes/
+│   │       ├── lotes/
+│   │       └── relatorio/
+│   ├── recepcionistas/
+│   ├── globals.css
 │   ├── layout.tsx
-│   └── <recurso>/
-│       ├── page.tsx          # listagem
-│       └── [id]/page.tsx     # detalhe
-├── components/               # componentes reutilizáveis
-├── lib/
-│   ├── api.ts                # cliente HTTP único
-│   └── auth.ts               # sessão e token
-└── types/                    # tipos derivados do contrato da API
+│   └── page.tsx              # listagem dos eventos do organizador
+├── public/
+├── next.config.ts
+├── package.json
+└── package-lock.json
 ```
+
+Os formulários e as páginas se comunicam com a API por meio de Server Actions e consultas executadas no servidor. O frontend utiliza App Router, sem pasta `src/` ou Pages Router.
+
+Outros comandos: `npm run build` (compilação), `npm run start -- -p 3001` (servidor após o build) e `npm run lint` (ESLint).
 
 ---
 
-## Passo a passo — app mobile (Flutter) · Etapa 4
+## Passo a passo — app mobile (Flutter)
 
-### 1. Conferir o ambiente
+### 1. Conferir o ambiente e instalar as dependências
 
-```bash
-flutter doctor                # resolva o que aparecer em vermelho antes de seguir
-```
-
-### 2. Criar o projeto
-
-Na raiz do repositório:
+Na raiz do repositório, em outro terminal:
 
 ```bash
-flutter create mobile --org br.edu.<projeto> --platforms android,ios
 cd mobile
+flutter doctor
+flutter pub get
+flutter devices
 ```
 
-### 3. Dependências mínimas
+### 2. Endereço da API
 
-```bash
-flutter pub add http
-flutter pub add flutter_dotenv        # opcional, para a URL da API
-```
-
-### 4. Endereço da API
-
-`localhost` dentro do emulador Android aponta para o próprio emulador, não para a sua máquina. Guarde a URL em um único lugar do código:
+A URL está centralizada em `mobile/lib/services/evento_service.dart`, no getter `EventoService.baseUrl`.
 
 | Onde o app roda | URL da API |
 |---|---|
-| Emulador Android | `http://10.0.2.2:3000` |
-| Simulador iOS | `http://localhost:3000` |
-| Dispositivo físico | `http://<ip-da-sua-maquina>:3000` |
+| Flutter Web (Chrome) | `http://localhost:3000` — configurada no código |
+| Emulador Android | `http://10.0.2.2:3000` — configurada no código |
+| Simulador iOS | `http://localhost:3000` — requer ajuste no getter |
+| Dispositivo físico | `http://<ip-da-sua-maquina>:3000` — requer ajuste no getter e acesso à rede local |
 
-No Android, requisições HTTP em texto puro são bloqueadas por padrão: para desenvolvimento, habilite `android:usesCleartextTraffic="true"` no `AndroidManifest.xml` de *debug*.
+O código distingue somente Flutter Web e plataformas nativas. Por isso, o endereço de emulador Android é o padrão atual para todas as plataformas nativas. Não há configuração por `.env` no mobile.
 
-### 5. Rodar
+O manifesto Android de debug já contém `android:usesCleartextTraffic="true"`, permitindo HTTP local durante o desenvolvimento. O manifesto principal declara a permissão de internet. Em iOS, também pode ser necessário configurar a política de segurança de transporte para HTTP local.
+
+### 3. Preparar a demonstração mobile
+
+O aplicativo possui login simulado, com acesso aos perfis Participante e Recepcionista. As requisições de consulta de eventos são públicas; as operações de ingressos e check-in usam rotas demonstrativas da API.
+
+No `backend/.env`, configure:
+
+```env
+NODE_ENV=development
+MOBILE_DEMO=true
+```
+
+O código utiliza identificadores fixos para os usuários de demonstração:
+
+| Perfil | Identificador usado |
+|---|---|
+| Participante | `4` |
+| Recepcionista | `9` |
+
+O repositório não contém seed nem dados de demonstração versionados. Em uma instalação nova, as migrations criam a estrutura do banco, mas não criam esses usuários. Para reproduzir a demonstração completa, prepare os dados localmente e confira os identificadores em `npx prisma studio` (executado dentro de `backend/`).
+
+1. Crie uma conta de organizador pelo web e cadastre um evento.
+2. Crie um lote com período de inscrição vigente e vagas disponíveis.
+3. Cadastre um participante e um recepcionista pelo web. Garanta que o participante de demonstração tenha ID `4` e o recepcionista tenha ID `9`. Se os IDs gerados forem diferentes, ajuste localmente os identificadores fixos nas rotas de demonstração de `inscricoes.controller.ts` e `checkins.controller.ts` para os IDs correspondentes, ou prepare o banco com os IDs esperados.
+4. Crie uma inscrição para o participante de demonstração, vinculada ao evento e ao lote.
+5. Com o backend em execução, abra o app como participante para consultar o ingresso, ou como recepcionista para localizar a inscrição e realizar o check-in.
+
+As credenciais digitadas na tela de login do app não determinam os usuários consultados. O check-in demonstrativo altera os dados reais do banco local, portanto utilize apenas registros de teste.
+
+### 4. Rodar
+
+Com um emulador Android iniciado:
 
 ```bash
-flutter devices               # lista emuladores e aparelhos conectados
 flutter run
 ```
 
-### Estrutura sugerida
+Para executar no navegador:
 
+```bash
+flutter run -d chrome
 ```
-mobile/lib/
-├── main.dart
-├── models/                   # modelos derivados do contrato da API
-├── services/                 # cliente HTTP e autenticação
-├── screens/                  # uma pasta por tela
-└── widgets/                  # widgets reutilizáveis
+
+O Flutter Web é uma execução do aplicativo mobile, não o cliente administrativo Next.js.
+
+### Estrutura do aplicativo
+
+```text
+mobile/
+├── lib/
+│   ├── main.dart                     # aplicação, navegação e principais telas
+│   ├── tela_meus_ingressos.dart       # consulta dos ingressos
+│   ├── models/
+│   │   ├── evento.dart
+│   │   ├── ingresso.dart
+│   │   └── inscricao_evento.dart
+│   └── services/
+│       ├── evento_service.dart
+│       ├── ingresso_service.dart
+│       └── inscricao_evento_service.dart
+├── android/
+├── ios/
+├── web/
+├── test/
+├── pubspec.yaml
+└── pubspec.lock
 ```
+
+Outros comandos: `flutter analyze` (análise estática) e `flutter test` (testes).
 
 ---
 
 ## Rodando os três ao mesmo tempo
 
-Precisa de três terminais, com o banco já no ar:
+Após instalar as dependências, configurar o `.env`, aplicar as migrations e gerar o Prisma Client, execute os comandos abaixo, cada um a partir da raiz do repositório, em terminais separados:
 
 ```bash
-docker compose up -d                       # banco, se o grupo usa Docker
-cd backend && npm run start:dev            # terminal 1 — API em :3000
-cd web     && npm run dev -- -p 3001       # terminal 2 — web em :3001
-cd mobile  && flutter run                  # terminal 3 — app no emulador
+docker compose up -d                 # banco PostgreSQL, se utilizado Docker
+cd backend && npm run start:dev      # terminal 1 — API em :3000
+cd frontend && npm run dev -- -p 3001 # terminal 2 — web em :3001
+cd mobile && flutter run             # terminal 3 — aplicativo no emulador
 ```
 
-Se o banco estiver instalado na máquina ou hospedado, pule a primeira linha — basta que ele esteja no ar antes de subir a API.
+Para demonstrar o mobile, também habilite `MOBILE_DEMO=true` e prepare os dados descritos na seção anterior.
 
-Ao final do projeto, o `docs/relatorio.md` precisa descrever exatamente esses passos, de forma que outra pessoa suba o sistema do zero.
+| Serviço | Endereço padrão |
+|---|---|
+| PostgreSQL | `localhost:5432` |
+| API REST | `http://localhost:3000` |
+| Cliente web | `http://localhost:3001` |
+| Mobile Android (acesso à API) | `http://10.0.2.2:3000` |
+
+---
+
+## Integração e API REST
+
+A API centraliza a persistência, as validações, as regras de inscrição e a contagem de presença. O web administra os dados e o mobile consulta esses mesmos registros e realiza o credenciamento.
+
+Principais endpoints implementados no código:
+
+| Método e rota | Acesso |
+|---|---|
+| `POST /auth/registro`, `POST /auth/login` | Público |
+| `GET /auth/perfil` | JWT válido |
+| `GET /eventos`, `GET /eventos/:id` | Público |
+| `GET /eventos/meus`, `GET /eventos/meus/:id` | Organizador |
+| `POST /eventos`, `PATCH /eventos/:id`, `DELETE /eventos/:id` | Organizador |
+| `GET /eventos/:eventoId/lotes`, `POST /eventos/:eventoId/lotes`, `PATCH /lotes/:id` | Organizador |
+| `GET /usuarios/participantes`, `POST /usuarios/participantes`, `POST /usuarios/recepcionistas` | Organizador |
+| `POST /inscricoes`, `GET /inscricoes/:id` | Organizador |
+| `GET /inscricoes?eventoId=:id` (com `busca` opcional) | Organizador e recepcionista |
+| `GET /inscricoes/minhas` | Participante |
+| `POST /inscricoes/:id/checkin` | Recepcionista |
+| `GET /eventos/:eventoId/contagem` | Organizador e recepcionista |
+
+Rotas utilizadas pelo mobile em modo demonstrativo, sem token:
+
+| Método e rota | Finalidade |
+|---|---|
+| `GET /inscricoes/demo/participante` | Consulta os ingressos do participante fixo |
+| `GET /inscricoes/demo/evento/:eventoId` | Consulta as inscrições do evento; aceita `busca` opcional |
+| `POST /inscricoes/demo/:id/checkin` | Registra check-in com o recepcionista fixo |
+| `GET /eventos/demo/:eventoId/contagem` | Consulta a contagem de presença |
+
+As rotas de demonstração de inscrições exigem `MOBILE_DEMO=true` e `NODE_ENV=development`; as de check-in e contagem exigem `MOBILE_DEMO=true` e rejeitam `NODE_ENV=production`. Configure sempre `development` para utilizar todos os fluxos. As rotas regulares protegidas continuam exigindo JWT e o perfil autorizado.
+
+O controller de usuários também expõe `GET /usuarios`, sem guard, e rotas `GET`, `PATCH` e `DELETE /usuarios/:id`, sem guard, cujos serviços ainda retornam mensagens de scaffold. Elas não constituem um CRUD completo de usuários e não devem ser consideradas prontas para produção.
+
+O [contrato da API](docs/contrato-api.md) contém a documentação das etapas anteriores e ainda precisa incorporar os endpoints e mudanças mais recentes, incluindo as rotas públicas de eventos e as rotas demonstrativas do mobile. A tabela acima reflete os controllers da versão atual.
 
 ---
 
@@ -352,32 +467,27 @@ Ao final do projeto, o `docs/relatorio.md` precisa descrever exatamente esses pa
 
 | Em português (domínio) | Em inglês (técnico) |
 |---|---|
-| `Chamado`, `Atendente`, `Ficha` | `Controller`, `Service`, `Module`, `Repository` |
-| campos: `titulo`, `dataAbertura`, `situacao` | `Dto`, `Guard`, `Pipe`, `Filter`, `Interceptor` |
-| rotas: `/chamados`, `/fichas` | `Page`, `Layout`, `Widget`, `Screen`, `Provider` |
-| `CriarChamadoDto`, `AtualizarChamadoDto` | `findAll`, `findOne`, `create`, `update`, `remove` |
-| arquivos: `chamados.controller.ts` | `id`, `createdAt`, `page`, `limit` |
+| `Evento`, `Usuario`, `Inscricao` | `Controller`, `Service`, `Module` |
+| campos: `nome`, `descricao`, `criadoEm` | `Dto`, `Guard`, `Pipe` |
+| rotas: `/eventos`, `/inscricoes` | `Page`, `Layout`, `Widget` |
+| arquivos: `eventos.controller.ts` | `findAll`, `findOne`, `create`, `update`, `remove` |
 
-**Identificadores nunca levam acento ou cedilha:** `Emprestimo`, não `Empréstimo`; `situacao`, não `situação`. Vale para nome de arquivo, de pasta, de campo e de rota. O texto da documentação escreve a palavra acentuada normalmente — só o identificador perde o acento.
-
-Comentários, mensagens de commit, textos de interface e mensagens de erro voltadas ao usuário final: **português do Brasil**, com acentuação normal.
+Identificadores não levam acento ou cedilha: `Inscricao`, não `Inscrição`. Comentários, mensagens de commit, textos de interface e mensagens de erro voltadas ao usuário final utilizam português do Brasil.
 
 ---
 
 ## Documentação do grupo
 
-Os arquivos em `docs/` são templates para preencher. Cada um traz suas próprias instruções no topo.
-
 | Arquivo | Quando | Para quê |
 |---|---|---|
-| `docs/visao.md` | Etapa 0 | Problema, usuários e escopo de alto nível |
-| `docs/equipe.md` | Etapa 0, atualizado a cada etapa | Composição, papéis e registro de contribuições |
-| `docs/prd.md` | Etapa 1, revisado depois | Requisitos, modelo de dados, arquitetura e recorte web/mobile |
-| `docs/contrato-api.md` | Etapa 1, sempre atualizado | Endpoints: entrada, saída, status, erros, autenticação |
-| `docs/relatorio.md` | A cada etapa | Diário técnico: decisões, dificuldades e uso de IA |
-| `docs/rfc-001.md` | Só se publicado | Análise e implementação de uma mudança de requisito |
+| [docs/visao.md](docs/visao.md) | Etapa 0 | Problema, usuários e escopo de alto nível |
+| [docs/equipe.md](docs/equipe.md) | Etapa 0, atualizado a cada etapa | Composição, papéis e registro de contribuições |
+| [docs/prd.md](docs/prd.md) | Etapa 1, revisado depois | Requisitos, modelo de dados, arquitetura e recorte web/mobile |
+| [docs/contrato-api.md](docs/contrato-api.md) | Etapa 1, atualizado com a implementação | Endpoints, entradas, saídas, erros e autenticação |
+| [docs/relatorio.md](docs/relatorio.md) | A cada etapa | Diário técnico, decisões, dificuldades e uso de IA |
+| [docs/rfc-001.md](docs/rfc-001.md) | Se aplicável | Análise e implementação de uma mudança de requisito |
 
-> **O contrato da API é o documento que destrava o paralelismo.** Com ele fechado, quem cuida do web constrói telas antes de o endpoint existir, e quem cuida do mobile modela suas classes sem esperar a primeira migration. Regra prática: **o contrato muda antes do código, nunca depois.**
+A documentação em `docs/` faz parte da entrega acadêmica. O contrato da API deve acompanhar a implementação, e o relatório técnico deve registrar as decisões das etapas finais. Alguns desses documentos ainda contêm campos de etapas anteriores a preencher ou atualizar.
 
 ---
 
@@ -385,44 +495,40 @@ Os arquivos em `docs/` são templates para preencher. Cada um traz suas própria
 
 ### Obrigatório
 
-- Um repositório único do grupo, criado a partir do template e acessível ao professor.
-- Cada commit feito **pelo autor real do código**. Em programação em par, use `Co-authored-by:` na mensagem.
-- Nenhuma credencial versionada.
+- Um repositório único do grupo, acessível ao professor.
+- Cada commit feito pelo autor real do código. Em programação em par, utilizar `Co-authored-by:` na mensagem.
+- Nenhuma credencial real versionada.
 
 ### Recomendado
 
-Nada abaixo é obrigatório, mas tudo reduz retrabalho:
+- Manter a `main` em estado funcional.
+- Fazer commits frequentes ao longo da sprint.
+- Utilizar mensagens no padrão `tipo(componente): descricao`:
 
-- Manter a `main` sempre em estado funcional.
-- Commits frequentes ao longo da sprint, em vez de um pacote no último dia.
-- Mensagens no padrão `tipo(componente): descricao`:
-
-```
-feat(backend): adiciona endpoint POST /chamados com validacao de DTO
-feat(web): implementa listagem de chamados com paginacao
-feat(mobile): adiciona tela de detalhe do chamado
-fix(backend): corrige calculo de SLA para chamados reabertos
-docs: atualiza diario com decisoes da sprint 3
-refactor(web): extrai cliente HTTP para modulo compartilhado
+```text
+feat(backend): adiciona endpoint de inscricoes
+feat(frontend): implementa gerenciamento de lotes
+feat(mobile): adiciona consulta de ingressos
+fix(backend): corrige registro de check-in
+docs: atualiza estrutura e instrucoes do README
 ```
 
-- Branches por funcionalidade, integradas por Pull Request.
-- Revisão do PR por outro integrante antes do merge.
+- Criar branches por funcionalidade e revisar Pull Requests antes do merge.
 
 ### O que não versionar
 
-O `.gitignore` da raiz já cobre os três componentes:
+Os arquivos `.gitignore` da raiz e dos componentes cobrem os principais artefatos gerados e configurações locais:
 
-```
-node_modules/      .next/          build/
-dist/              generated/      .dart_tool/
-.env, .env.local   coverage/       android/key.properties
+```text
+node_modules/           frontend/.next/       backend/dist/
+backend/generated/      mobile/.dart_tool/    mobile/build/
+.env                    .env.local            coverage/
 ```
 
-Cada componente versiona um `.env.example` com as chaves esperadas e valores fictícios — nunca o `.env` real.
+O backend fornece `backend/.env.example` com valores de exemplo. Nunca versione o `.env` real, chaves JWT ou credenciais de produção.
 
 ---
 
 ## Onde está o resto
 
-Temas disponíveis, escopo esperado, etapas, prazos, critérios de avaliação e dúvidas frequentes estão na **página do trabalho, na disciplina**. Em caso de divergência entre este README e aquela página, a página vale.
+O escopo acadêmico, as etapas, os prazos e os critérios de avaliação estão na página do trabalho, na disciplina. Em caso de divergência com o enunciado oficial, prevalece a orientação do professor.
